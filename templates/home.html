@@ -76,11 +76,11 @@
         }
 
         
-        function plyta_tot_change()
+        function plyta_tot_change(s, e)
         {
-            alert(event.target.id);
-            calculate_size(event.target, "p");
-            calculate_perc(event.target);
+            el = document.querySelector(".plyta_zm."+s+"i."+e+"i");
+            calculate_size(el, "p");
+            calculate_perc(el);
         }
        
             /* 
@@ -134,6 +134,7 @@
             n = document.querySelectorAll("."+s+"i."+e+"i.plyta_q");
             sum = sumVal(n);
             document.querySelector(".plyta_zm."+s+"i."+e+"i").value = sum;
+            plyta_tot_change(s,e);
 
             // порахувати за добу
             // порахувати за місяць
