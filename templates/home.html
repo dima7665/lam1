@@ -22,28 +22,29 @@
             calculate_z_size(n, "z");
 
             sum1s(el.className.slice(-8,-5), el.className.slice(-3,-1));
+            sum_p(el.className.slice(-12,-10), el.className.slice(-3,-1));
         }
 
         function calculate_z_size(el, pos)
         {
             if (pos == "z")
             {
-                qEl = el.parentNode.parentNode.querySelector("div[class=z_size]");
+                qEl = el.parentNode.parentNode.querySelector("input[class=i_z_size]");
                 k = koef * 2;
             }
             if (pos == "p")
             {
-                qEl = el.parentNode.parentNode.querySelector("div[class=p_size]");
+                qEl = el.parentNode.parentNode.querySelector("input[class=i_p_size]");
                 k = koef;
             }
 
             if (el.value != 0)
             {
-                qEl.innerHTML = Math.round((el.value * k + Number.EPSILON) * 10000) / 10000;
+                qEl.value = valRound4(el.value * k);
             } 
             else
             {
-                qEl.innerHTML = "&nbsp";
+                qEl.value = "";
             }
         }
 
@@ -66,6 +67,11 @@
             [].indexOf.call(plytaInput, document.querySelector("input[id=t1s1i]"))
             */
 
+        function valRound4(i)
+        {
+            return Math.round((i + Number.EPSILON) * 10000) / 10000
+        }
+
         function sumVal(lst)
         {
             sum=0;
@@ -81,7 +87,7 @@
 
         function test()
         {   
-            alert(document.querySelectorAll(".t1i.plyta_q")[0].className.slice(-3,-1));
+            alert(1);
         }
 
         function calc_sum1s()
@@ -91,11 +97,21 @@
         }
 
         function sum1s(pr, e)
-        {
-            n = document.querySelectorAll("."+pr+"i."+e+"i.plyta_q");
+        {   
+            n = document.querySelectorAll(".s1i."+pr+"i."+e+"i.plyta_q");
             sum = sumVal(n);
             document.querySelector(".total_i."+pr+"i."+e+"i").value = sum/2;
+            document.querySelector(".size_i."+pr+"i."+e+"i").value = valRound4(sum * koef);
+        }
 
+        function sum_p(s, e)
+        {   
+            n = document.querySelectorAll("."+s+"i."+e+"i.plyta_q");
+            sum = sumVal(n);
+            document.querySelector(".plyta_zm."+s+"i."+e+"i").value = sum;
+            // порахувати за добу
+            // порахувати за місяць
+            // порахувати Разом
         }
 
         function listen()
@@ -141,6 +157,8 @@
             <td colspan="2" rowspan="2">Випуск продукції</td>
             <td colspan="7">Прес1</td>
             <td colspan="7">Прес2</td>
+            <td colspan="3">Всього Е1</td>
+            <td colspan="3">Всього Е05</td>
             <td colspan="3">Разом</td>
         </tr>
         <tr id="row_E">
@@ -155,91 +173,209 @@
         </tr>
         <tr id="pidsumok">
             <td colspan="2">підсумок</td>
-            <td><input type="text" class="pr1i e1i total_i" size="10" readonly></td>
-            <td><input type="text" class="pr1i e1i size_i" size="10" readonly></td>
-            <td><input type="text" class="pr1i e1i perc_i" size="10" readonly></td>
+            <td><input type="text" class="pr1i e1i total_i" size="7" readonly></td>
+            <td><input type="text" class="pr1i e1i size_i" size="7" readonly></td>
+            <td><input type="text" class="pr1i e1i perc_i" size="7" readonly></td>
             <td></td>
-            <td><input type="text" class="pr1i e2i total_i" size="10" readonly></td>
-            <td><input type="text" class="pr1i e2i size_i" size="10" readonly></td>
-            <td><input type="text" class="pr1i e2i perc_i" size="10" readonly></td>
+            <td><input type="text" class="pr1i e2i total_i" size="7" readonly></td>
+            <td><input type="text" class="pr1i e2i size_i" size="7" readonly></td>
+            <td><input type="text" class="pr1i e2i perc_i" size="7" readonly></td>
+            <td><input type="text" class="pr2i e1i total_i" size="7" readonly></td>
+            <td><input type="text" class="pr2i e1i size_i" size="7" readonly></td>
+            <td><input type="text" class="pr2i e1i perc_i" size="7" readonly></td>
+            <td></td>
+            <td><input type="text" class="pr2i e2i total_i" size="7" readonly></td>
+            <td><input type="text" class="pr2i e2i size_i" size="7" readonly></td>
+            <td><input type="text" class="pr2i e2i perc_i" size="7" readonly></td>
         </tr>
         <tr>
             <td colspan="2">Текстури</td>
-            <td><input type="text" size="10"></td>
-            <td><input type="text" size="10"></td>
-            <td><input type="text" size="10"></td>
-            <td><input type="text" size="10"></td>
-            <td><input type="text" size="10"></td>
-            <td><input type="text" size="10"></td>
-            <td><input type="text" size="10"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
         </tr>
         <tr id="s1">
             <td class='plyta'>Плита 1 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
-            <td class="t1"><div><input type="text" id="t1s1e1i" class="plyta_q t1i s1i pr1i e1i" value="{{ rob_zm[1].t1[1] }}" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t2"><div><input type="text" id="t2s1e1i" class="plyta_q t2i s1i pr1i e1i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t3"><div><input type="text" id="t3s1e1i" class="plyta_q t3i s1i pr1i e1i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t4"><div><input type="text" id="t4s1e1i" class="plyta_q t4i s1i pr1i e1i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t5"><div><input type="text" id="t5s1e1i" class="plyta_q t5i s1i pr1i e2i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t6"><div><input type="text" id="t6s1e1i" class="plyta_q t6i s1i pr1i e2i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t7"><div><input type="text" id="t7s1e1i" class="plyta_q t7i s1i pr1i e2i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
+            <td class="t1"><div><input type="text" id="t1s1i" class="plyta_q t1i s1i pr1i e1i" value="{{ rob_zm[1].t1[1] }}" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t2"><div><input type="text" id="t2s1i" class="plyta_q t2i s1i pr1i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t3"><div><input type="text" id="t3s1i" class="plyta_q t3i s1i pr1i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t4"><div><input type="text" id="t4s1i" class="plyta_q t4i s1i pr1i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t5"><div><input type="text" id="t5s1i" class="plyta_q t5i s1i pr1i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t6"><div><input type="text" id="t6s1i" class="plyta_q t6i s1i pr1i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t7"><div><input type="text" id="t7s1i" class="plyta_q t7i s1i pr1i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t8"><div><input type="text" id="t8s1i" class="plyta_q t8i s1i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t9"><div><input type="text" id="t9s1i" class="plyta_q t9i s1i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t10"><div><input type="text" id="t10s1i" class="plyta_q t10i s1i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t11"><div><input type="text" id="t11s1i" class="plyta_q t11i s1i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t12"><div><input type="text" id="t12s1i" class="plyta_q t12i s1i pr2i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t13"><div><input type="text" id="t13s1i" class="plyta_q t13i s1i pr2i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t14"><div><input type="text" id="t14s1i" class="plyta_q t14i s1i pr2i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote1"><div><input type="text" id="tote1s1z" class="plyta_zm tote1i s1i e1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote1"><div><input type="text" id="tote1s1d" class="plyta_dob tote1i s1i e1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote1"><div><input type="text" id="tote1s1m" class="plyta_mis tote1i s1i e1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote2"><div><input type="text" id="tote2s1z" class="plyta_zm tote2i s1i e2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote2"><div><input type="text" id="tote2s1d" class="plyta_dob tote2i s1i e2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote2"><div><input type="text" id="tote2s1m" class="plyta_mis tote2i s1i e2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="total"><div><input type="text" id="tots1z" class="plyta_zm toti s1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="total"><div><input type="text" id="tots1d" class="plyta_dob toti s1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="total"><div><input type="text" id="tots1m" class="plyta_mis toti s1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+             
         </tr>
         <tr id="s2">
             <td class='plyta'>Плита 2 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
-            <td class="t1"><div><input type="text" id="t1s2e1i" class="plyta_q t1i s2i pr1i e1i" value="" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t2"><div><input type="text" id="t2s2e1i" class="plyta_q t2i s2i pr1i e1i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t3"><div><input type="text" id="t3s2e1i" class="plyta_q t3i s2i pr1i e1i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t4"><div><input type="text" id="t4s2e1i" class="plyta_q t4i s2i pr1i e1i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t5"><div><input type="text" id="t5s2e2i" class="plyta_q t5i s2i pr1i e2i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t6"><div><input type="text" id="t6s2e2i" class="plyta_q t6i s2i pr1i e2i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
-            <td class="t7"><div><input type="text" id="t7s2e2i" class="plyta_q t7i s2i pr1i e2i" size="10"></div>
-                <div class="p_size">&nbsp;</div>
-                <div class="p_perc">&nbsp;</div></td>
+            <td class="t1"><div><input type="text" id="t1s2i" class="plyta_q t1i s2i pr1i e1i" value="" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t2"><div><input type="text" id="t2s2i" class="plyta_q t2i s2i pr1i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t3"><div><input type="text" id="t3s2i" class="plyta_q t3i s2i pr1i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t4"><div><input type="text" id="t4s2i" class="plyta_q t4i s2i pr1i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t5"><div><input type="text" id="t5s2i" class="plyta_q t5i s2i pr1i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t6"><div><input type="text" id="t6s2i" class="plyta_q t6i s2i pr1i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t7"><div><input type="text" id="t7s2i" class="plyta_q t7i s2i pr1i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t8"><div><input type="text" id="t8s2i" class="plyta_q t8i s2i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t9"><div><input type="text" id="t9s2i" class="plyta_q t9i s2i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t10"><div><input type="text" id="t10s2i" class="plyta_q t10i s2i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t11"><div><input type="text" id="t11s2i" class="plyta_q t11i s2i pr2i e1i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t12"><div><input type="text" id="t12s2i" class="plyta_q t12i s2i pr2i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t13"><div><input type="text" id="t13s2i" class="plyta_q t13i s2i pr2i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="t14"><div><input type="text" id="t14s2i" class="plyta_q t14i s2i pr2i e2i" size="7"></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote1"><div><input type="text" id="tote1s2z" class="plyta_zm tote1i s2i e1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote1"><div><input type="text" id="tote1s2d" class="plyta_dob tote1i s2i e1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote1"><div><input type="text" id="tote1s2m" class="plyta_mis tote1i s2i e1i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote2"><div><input type="text" id="tote2s2z" class="plyta_zm tote2i s2i e2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote2"><div><input type="text" id="tote2s2d" class="plyta_dob tote2i s2i e2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="tote2"><div><input type="text" id="tote2s2m" class="plyta_mis tote2i s2i e2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="total"><div><input type="text" id="tots2z" class="plyta_zm toti s2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="total"><div><input type="text" id="tots2d" class="plyta_dob toti s2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            <td class="total"><div><input type="text" id="tots2m" class="plyta_mis toti s2i" size="7" readonly></div>
+                <div><input type="text" class="i_p_size" size="7" readonly></div>
+                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
         </tr>
         <tr id="row_zapr">
             <td class='plyta'>Всього </td>
             <td><div>запр</div><div>м3</div></td>
-            <td class="t1"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
-            <td class="t2"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
-            <td class="t3"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
-            <td class="t4"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
-            <td class="t5"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
-            <td class="t6"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
-            <td class="t7"><div><input class="zquantity" type="text" size="10" readonly></div>
-                <div class="z_size">&nbsp;</div>
+            <td class="t1"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t2"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t3"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t4"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t5"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t6"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t7"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t8"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t9"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t10"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t11"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t12"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t13"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="t14"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
         </tr>
     </table>
 {% endblock content %}
