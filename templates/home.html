@@ -1,0 +1,245 @@
+{% extends "layout.html" %}
+{% block scripts %}
+    <script>
+        const koef = 0.08052;
+
+        function calculate_p_size(el)
+        {
+            calculate_z_size(el, "p");
+            tekst = el.parentNode.parentNode.className;
+            n = document.querySelectorAll("."+tekst+"i.plyta_q");
+            let sum=0;
+            for (i=0; i<n.length; i++)
+            {
+                if (n[i].value != "")
+                {
+                    sum += parseInt(n[i].value);
+                }
+            }
+
+            n = document.querySelector("td[class="+tekst+"] input[class=zquantity]");
+            n.value = sum / 2;
+            calculate_z_size(n, "z");
+
+            sum1s(el.className.slice(-8,-5), el.className.slice(-3,-1));
+        }
+
+        function calculate_z_size(el, pos)
+        {
+            if (pos == "z")
+            {
+                qEl = el.parentNode.parentNode.querySelector("div[class=z_size]");
+                k = koef * 2;
+            }
+            if (pos == "p")
+            {
+                qEl = el.parentNode.parentNode.querySelector("div[class=p_size]");
+                k = koef;
+            }
+
+            if (el.value != 0)
+            {
+                qEl.innerHTML = Math.round((el.value * k + Number.EPSILON) * 10000) / 10000;
+            } 
+            else
+            {
+                qEl.innerHTML = "&nbsp";
+            }
+        }
+
+        function pl_q_change()
+        {
+            calculate_p_size(event.target, "p");
+        }
+
+        function z_q_change()
+        {
+            calculate_z_size(event.target, "z");
+        }
+       
+            /* 
+            let elements = document.querySelectorAll('ul > li:last-child');
+            for (let elem of elements) {
+                alert(elem.innerHTML); // "test", "passed"
+            }
+
+            [].indexOf.call(plytaInput, document.querySelector("input[id=t1s1i]"))
+            */
+
+        function sumVal(lst)
+        {
+            sum=0;
+            for (i=0;i<lst.length;i++)
+             {
+                 if (lst[i].value != "")
+                 {
+                    sum += parseInt(lst[i].value);
+                }
+            }
+            return sum;
+        }
+
+        function test()
+        {   
+            alert(document.querySelectorAll(".t1i.plyta_q")[0].className.slice(-3,-1));
+        }
+
+        function calc_sum1s()
+        {
+            el = event.target;
+
+        }
+
+        function sum1s(pr, e)
+        {
+            n = document.querySelectorAll("."+pr+"i."+e+"i.plyta_q");
+            sum = sumVal(n);
+            document.querySelector(".total_i."+pr+"i."+e+"i").value = sum/2;
+
+        }
+
+        function listen()
+        {
+            //var el = document.querySelector("div.user-panel.main input[name=login]")
+
+            window.plytaInput = document.querySelectorAll(".plyta_q");
+            window.zapr = document.querySelectorAll("input[class=zquantity]");
+
+            // test label
+            document.querySelector("label[class=testClick]").addEventListener("click",test,false);
+
+            document.querySelector(".total_i").addEventListener("change", calc_sum1s, false);
+
+
+
+            for(let i=0; i<plytaInput.length;i++)
+            {   
+                calculate_p_size(plytaInput[i]);
+                plytaInput[i].addEventListener("change", pl_q_change, false);
+            }
+           
+            for(let i=0; i<zapr.length;i++)
+            {   
+                calculate_z_size(zapr[i]);
+                zapr[i].addEventListener("change", z_q_change, false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', listen);
+
+
+    </script>
+{% endblock scripts %}
+
+{% block content %}
+    <input type="date" id="zm_date" value="2021-01-01">
+    <label class="testClick">Click</label>
+    <h2>Назва таблиці</h2>
+    <p></p>
+    <table id="main_table">  
+        <tr id="row_header">
+            <td colspan="2" rowspan="2">Випуск продукції</td>
+            <td colspan="7">Прес1</td>
+            <td colspan="7">Прес2</td>
+            <td colspan="3">Разом</td>
+        </tr>
+        <tr id="row_E">
+            <td colspan="4">Е1</td>
+            <td colspan="3">Е05</td>
+            <td colspan="4">Е1</td>
+            <td colspan="3">Е05</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr id="pidsumok">
+            <td colspan="2">підсумок</td>
+            <td><input type="text" class="pr1i e1i total_i" size="10" readonly></td>
+            <td><input type="text" class="pr1i e1i size_i" size="10" readonly></td>
+            <td><input type="text" class="pr1i e1i perc_i" size="10" readonly></td>
+            <td></td>
+            <td><input type="text" class="pr1i e2i total_i" size="10" readonly></td>
+            <td><input type="text" class="pr1i e2i size_i" size="10" readonly></td>
+            <td><input type="text" class="pr1i e2i perc_i" size="10" readonly></td>
+        </tr>
+        <tr>
+            <td colspan="2">Текстури</td>
+            <td><input type="text" size="10"></td>
+            <td><input type="text" size="10"></td>
+            <td><input type="text" size="10"></td>
+            <td><input type="text" size="10"></td>
+            <td><input type="text" size="10"></td>
+            <td><input type="text" size="10"></td>
+            <td><input type="text" size="10"></td>
+        </tr>
+        <tr id="s1">
+            <td class='plyta'>Плита 1 сорт</td>
+            <td><div>шт</div><div>м3</div><div>%</div></td>
+            <td class="t1"><div><input type="text" id="t1s1e1i" class="plyta_q t1i s1i pr1i e1i" value="{{ rob_zm[1].t1[1] }}" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t2"><div><input type="text" id="t2s1e1i" class="plyta_q t2i s1i pr1i e1i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t3"><div><input type="text" id="t3s1e1i" class="plyta_q t3i s1i pr1i e1i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t4"><div><input type="text" id="t4s1e1i" class="plyta_q t4i s1i pr1i e1i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t5"><div><input type="text" id="t5s1e1i" class="plyta_q t5i s1i pr1i e2i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t6"><div><input type="text" id="t6s1e1i" class="plyta_q t6i s1i pr1i e2i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t7"><div><input type="text" id="t7s1e1i" class="plyta_q t7i s1i pr1i e2i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+        </tr>
+        <tr id="s2">
+            <td class='plyta'>Плита 2 сорт</td>
+            <td><div>шт</div><div>м3</div><div>%</div></td>
+            <td class="t1"><div><input type="text" id="t1s2e1i" class="plyta_q t1i s2i pr1i e1i" value="" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t2"><div><input type="text" id="t2s2e1i" class="plyta_q t2i s2i pr1i e1i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t3"><div><input type="text" id="t3s2e1i" class="plyta_q t3i s2i pr1i e1i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t4"><div><input type="text" id="t4s2e1i" class="plyta_q t4i s2i pr1i e1i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t5"><div><input type="text" id="t5s2e2i" class="plyta_q t5i s2i pr1i e2i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t6"><div><input type="text" id="t6s2e2i" class="plyta_q t6i s2i pr1i e2i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+            <td class="t7"><div><input type="text" id="t7s2e2i" class="plyta_q t7i s2i pr1i e2i" size="10"></div>
+                <div class="p_size">&nbsp;</div>
+                <div class="p_perc">&nbsp;</div></td>
+        </tr>
+        <tr id="row_zapr">
+            <td class='plyta'>Всього </td>
+            <td><div>запр</div><div>м3</div></td>
+            <td class="t1"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+            <td class="t2"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+            <td class="t3"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+            <td class="t4"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+            <td class="t5"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+            <td class="t6"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+            <td class="t7"><div><input class="zquantity" type="text" size="10" readonly></div>
+                <div class="z_size">&nbsp;</div>
+        </tr>
+    </table>
+{% endblock content %}
