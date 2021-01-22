@@ -6,7 +6,7 @@
         function calculate_p_size(el)
         {
             calculate_size(el, "p");
-            sum = calculate_perc(el);
+            sum = calculate_perc(el, "plyta_q");
 
             n = document.querySelector("td[class="+tekst+"] input[class=zquantity]");
             n.value = sum / 2;
@@ -39,18 +39,11 @@
             }
         }
 
-        function calculate_perc(el)
+        function calculate_perc(el, pl)
         {
             tekst = el.parentNode.parentNode.className;
-            n = document.querySelectorAll("."+tekst+"i.plyta_q");
-            let sum=0;
-            for (i=0; i<n.length; i++)
-            {
-                if (n[i].value != "")
-                {
-                    sum += parseInt(n[i].value);
-                }
-            }
+            n = document.querySelectorAll("."+tekst+"i."+pl); // all in column
+            sum = sumVal(n);
 
             for (let elem of n)
             {
@@ -63,6 +56,21 @@
                 elem.parentNode.parentNode.querySelector("input[class=i_p_perc]").value = v;
             }
             return sum;
+        }
+
+        function calculate_perc_1s(sum_1s, pr, e)
+        {
+            n = document.querySelectorAll("."+pr+"i."+e+"i.plyta_q");
+            sumt = sumVal(n);
+            if (sumt == 0)
+            {
+                res = "";
+            }
+            else
+            {
+                res = Math.round(sum_1s / sumt * 100) + "%";
+            }
+            return res;           
         }
 
         function pl_q_change()
@@ -80,7 +88,7 @@
         {
             el = document.querySelector(".plyta_zm."+s+"i."+e+"i");
             calculate_size(el, "p");
-            calculate_perc(el);
+            calculate_perc(el, "plyta_tot");
         }
        
             /* 
@@ -124,21 +132,44 @@
         function sum1s(pr, e)
         {   
             n = document.querySelectorAll(".s1i."+pr+"i."+e+"i.plyta_q");
-            sum = sumVal(n);
+            sum = sumVal(n);    // sum 1 sort
             document.querySelector(".total_i."+pr+"i."+e+"i").value = sum/2;
             document.querySelector(".size_i."+pr+"i."+e+"i").value = valRound4(sum * koef);
+            // percent
+            document.querySelector(".perc_i."+pr+"i."+e+"i").value = calculate_perc_1s(sum, pr, e);
+
         }
 
         function sum_p(s, e)
         {   
             n = document.querySelectorAll("."+s+"i."+e+"i.plyta_q");
             sum = sumVal(n);
-            document.querySelector(".plyta_zm."+s+"i."+e+"i").value = sum;
+            el = document.querySelector(".plyta_zm."+s+"i."+e+"i");
+            el.value = sum;
             plyta_tot_change(s,e);
+            sum_t(e, el.className.slice(-13,-9));
 
+            // Разом
+            n = document.querySelectorAll(".plyta_zm."+s+"i");
+            sum = sumVal(n);
+            el = document.querySelector(".plyta_zmt."+s+"i");
+            el.value = sum;
+            calculate_size(el, "p");
+            calculate_perc(el, "plyta_tot");
+            sum_t("e3", el.className.slice(-13,-9));
             // порахувати за добу
             // порахувати за місяць
-            // порахувати Разом
+            
+        }
+
+        function sum_t(e, t)
+        {   
+            n = document.querySelectorAll(".plyta_tot."+t+"i");
+            sum = sumVal(n);
+            el = document.querySelector("."+e+"i."+t+"i.zquantity");
+            el.value = sum/2;
+            calculate_size(el, "z");
+
         }
 
         function listen()
@@ -275,31 +306,31 @@
             <td class="t14"><div><input type="text" id="t14s1i" class="plyta_q t14i s1i pr2i e2i" size="7"></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot1"><div><input type="text" id="tote1s1z" class="plyta_zm tot1i plyta_tot s1i e1i" size="7" readonly></div>
+            <td class="tot1"><div><input type="text" id="tote1s1z" class="plyta_zm plyta_tot tot1i s1i e1i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot2"><div><input type="text" id="tote1s1d" class="plyta_dob tot2i plyta_tot s1i e1i" size="7" readonly></div>
+            <td class="tot2"><div><input type="text" id="tote1s1d" class="plyta_dob plyta_tot tot2i s1i e1i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot3"><div><input type="text" id="tote1s1m" class="plyta_mis tot3i plyta_tot s1i e1i" size="7" readonly></div>
+            <td class="tot3"><div><input type="text" id="tote1s1m" class="plyta_mis plyta_tot tot3i s1i e1i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot4"><div><input type="text" id="tote2s1z" class="plyta_zm tot4i plyta_tot s1i e2i" size="7" readonly></div>
+            <td class="tot4"><div><input type="text" id="tote2s1z" class="plyta_zm plyta_tot tot4i s1i e2i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot5"><div><input type="text" id="tote2s1d" class="plyta_dob tot5i plyta_tot s1i e2i" size="7" readonly></div>
+            <td class="tot5"><div><input type="text" id="tote2s1d" class="plyta_dob plyta_tot tot5i s1i e2i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot6"><div><input type="text" id="tote2s1m" class="plyta_mis tot6i plyta_tot s1i e2i" size="7" readonly></div>
+            <td class="tot6"><div><input type="text" id="tote2s1m" class="plyta_mis plyta_tot tot6i s1i e2i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot7"><div><input type="text" id="tots1z" class="plyta_zm tot7i plyta_tot s1i" size="7" readonly></div>
+            <td class="tot7"><div><input type="text" id="tots1z" class="plyta_zmt plyta_tot tot7i s1i e3i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot8"><div><input type="text" id="tots1d" class="plyta_dob tot8i plyta_tot s1i" size="7" readonly></div>
+            <td class="tot8"><div><input type="text" id="tots1d" class="plyta_dobt plyta_tot tot8i s1i e3i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot9"><div><input type="text" id="tots1m" class="plyta_mis tot9i plyta_tot s1i" size="7" readonly></div>
+            <td class="tot9"><div><input type="text" id="tots1m" class="plyta_mist plyta_tot tot9i s1i e3i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
              
@@ -349,31 +380,31 @@
             <td class="t14"><div><input type="text" id="t14s2i" class="plyta_q t14i s2i pr2i e2i" size="7"></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tote1"><div><input type="text" id="tote1s2z" class="plyta_zm tote1i s2i e1i" size="7" readonly></div>
+            <td class="tot1"><div><input type="text" id="tote1s2z" class="plyta_zm plyta_tot tot1i s2i e1i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tote1"><div><input type="text" id="tote1s2d" class="plyta_dob tote1i s2i e1i" size="7" readonly></div>
+            <td class="tot2"><div><input type="text" id="tote1s2d" class="plyta_dob plyta_tot tot2i s2i e1i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tote1"><div><input type="text" id="tote1s2m" class="plyta_mis tote1i s2i e1i" size="7" readonly></div>
+            <td class="tot3"><div><input type="text" id="tote1s2m" class="plyta_mis plyta_tot tot3i s2i e1i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tote2"><div><input type="text" id="tote2s2z" class="plyta_zm tote2i s2i e2i" size="7" readonly></div>
+            <td class="tot4"><div><input type="text" id="tote2s2z" class="plyta_zm plyta_tot tot4i s2i e2i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tote2"><div><input type="text" id="tote2s2d" class="plyta_dob tote2i s2i e2i" size="7" readonly></div>
+            <td class="tot5"><div><input type="text" id="tote2s2d" class="plyta_dob plyta_tot tot5i s2i e2i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tote2"><div><input type="text" id="tote2s2m" class="plyta_mis tote2i s2i e2i" size="7" readonly></div>
+            <td class="tot6"><div><input type="text" id="tote2s2m" class="plyta_mis plyta_tot tot6i s2i e2i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="total"><div><input type="text" id="tots2z" class="plyta_zm toti s2i" size="7" readonly></div>
+            <td class="tot7"><div><input type="text" id="tots2z" class="plyta_zmt plyta_tot tot7i s2i e3i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="total"><div><input type="text" id="tots2d" class="plyta_dob toti s2i" size="7" readonly></div>
+            <td class="tot8"><div><input type="text" id="tots2d" class="plyta_dobt plyta_tot tot8i s2i e3i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="total"><div><input type="text" id="tots2m" class="plyta_mis toti s2i" size="7" readonly></div>
+            <td class="tot9"><div><input type="text" id="tots2m" class="plyta_mist plyta_tot tot9i s2i e3i" size="7" readonly></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
         </tr>
@@ -407,6 +438,24 @@
             <td class="t13"><div><input class="zquantity" type="text" size="7" readonly></div>
                 <div><input type="text" class="i_z_size" size="7" readonly></div>
             <td class="t14"><div><input class="zquantity" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot1i e1i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot2i e1i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot3i e1i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot4i e2i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot5i e2i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot6i e2i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot7i e3i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot8i e3i" type="text" size="7" readonly></div>
+                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            <td class="tot1"><div><input class="zquantity tot9i e3i" type="text" size="7" readonly></div>
                 <div><input type="text" class="i_z_size" size="7" readonly></div>
         </tr>
     </table>
