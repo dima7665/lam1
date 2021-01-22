@@ -1,11 +1,9 @@
 from flask import Flask, render_template
+import json
 
 app = Flask(__name__)
 
-rob_zm = [
-    {'t1_s1':'Akacia'},
-    {'t1':(12,32)}
-]
+rob_zm = ['22','','asd']
 
 @app.route("/")
 @app.route("/home")

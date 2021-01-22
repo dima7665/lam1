@@ -2,6 +2,7 @@
 {% block scripts %}
     <script>
         const koef = 0.08052;
+        kk = {{rob_zm|tojson|safe}};
 
         function calculate_p_size(el)
         {
@@ -120,7 +121,11 @@
 
         function test()
         {   
-            alert(plytaTotal[0].className);
+            if (kk[1]=="")
+            {
+                alert(kk[1]);
+            }
+            
         }
 
         function calc_sum1s()
@@ -177,31 +182,17 @@
             //var el = document.querySelector("div.user-panel.main input[name=login]")
 
             window.plytaInput = document.querySelectorAll(".plyta_q");
-            window.plytaTotal = document.querySelectorAll(".plyta_tot");
-            window.zapr = document.querySelectorAll("input[class=zquantity]");
-
+            
             // test label
             document.querySelector("label[class=testClick]").addEventListener("click",test,false);
 
-            document.querySelector(".total_i").addEventListener("change", calc_sum1s, false);
-
-            for (let i of plytaTotal)
-            {   
-                calculate_size(i, "p");
-                i.addEventListener("change", plyta_tot_change, false);
-            }
+            //document.querySelector(".total_i").addEventListener("change", calc_sum1s, false);
 
             for(let i=0; i<plytaInput.length;i++)
             {   
                 calculate_p_size(plytaInput[i]);
                 plytaInput[i].addEventListener("change", pl_q_change, false);
-            }
-           
-            for(let i=0; i<zapr.length;i++)
-            {   
-                calculate_size(zapr[i], "z");
-                zapr[i].addEventListener("change", z_q_change, false);
-            }
+            }  
         }
 
         document.addEventListener('DOMContentLoaded', listen);
@@ -229,10 +220,6 @@
             <td colspan="3">Е05</td>
             <td colspan="4">Е1</td>
             <td colspan="3">Е05</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
         </tr>
         <tr id="pidsumok">
             <td colspan="2">підсумок</td>
@@ -264,7 +251,7 @@
         <tr id="s1">
             <td class='plyta'>Плита 1 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
-            <td class="t1"><div><input type="text" id="t1s1i" class="plyta_q t1i s1i pr1i e1i" value="{{ rob_zm[1].t1[1] }}" size="7"></div>
+            <td class="t1"><div><input type="text" id="t1s1i" class="plyta_q t1i s1i pr1i e1i" value="" size="7"></div>
                 <div><input type="text" class="i_p_size" size="7" readonly></div>
                 <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
             <td class="t2"><div><input type="text" id="t2s1i" class="plyta_q t2i s1i pr1i e1i" size="7"></div>
