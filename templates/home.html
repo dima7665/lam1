@@ -201,7 +201,7 @@
     </script>
 {% endblock scripts %}
 
-{% block content %}
+{% block body %}
     <input type="date" id="zm_date" value="2021-01-01">
     <label class="testClick">Click</label>
     <h2>Назва таблиці</h2>
@@ -240,13 +240,9 @@
         </tr>
         <tr>
             <td colspan="2">Текстури</td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
+            {% for i in range(14) %}
+            <td><input type="text" name="texture" value="{{i}}" size="7"></td>
+            {% endfor %}
         </tr>
         <tr id="s1">
             <td class='plyta'>Плита 1 сорт</td>
@@ -446,4 +442,4 @@
                 <div><input type="text" class="i_z_size" size="7" readonly></div>
         </tr>
     </table>
-{% endblock content %}
+{% endblock body %}

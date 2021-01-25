@@ -12,3 +12,11 @@ div {
 .btn-group {
     border: 0px solid black;
 }
+
+.txt {
+    text-align: center;
+}
+
+.plyta_q.e1i {
+    background-color: rgb(221, 240, 114);
+}
