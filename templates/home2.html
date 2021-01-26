@@ -183,11 +183,107 @@
             make_total_global();
         }
 
+        function calc_def_total_by_t(el, def)
+        {
+            t = el.name;
+            ell = document.querySelectorAll(".def_table_i." + def + "." + t + "i");
+            sumt = sumVal(ell);
+            if(sumt != 0)
+            {
+                document.querySelector(".def_tot_t." + def + "." + t + "i").value = sumt;
+            }
+            else{
+                document.querySelector(".def_tot_t." + def + "." + t + "i").value = "";
+            }
+            
+
+            ell = el.parentNode.parentNode.querySelectorAll(".def_table_i");
+            sumd = sumVal(ell);
+            if(sumd != 0)
+            {
+                el.parentNode.parentNode.querySelector(".tot1i").value = sumt;
+            }
+            else{
+                el.parentNode.parentNode.querySelector(".tot1i").value = "";
+            }
+            
+            // all defs of group
+            gtot = sumVal(document.querySelectorAll(".def_tot_z.def_tot_q.tot1i"));
+            document.querySelector(".def_dsp_total_zm.tot1i").value = gtot;
+
+            calc_def_perc(gtot, def);
+            calc_tot_def_perc(gtot, "tot1", "tot2", "tot3");
+            
+        }
+
+        function calc_def_perc(gtot, def)
+        {
+            ell = document.querySelectorAll(".def_tot_t." + def);
+            for (elem of ell)
+            {
+                if (gtot > 0)       //  no NaN
+                { 
+                    v = Math.round(elem.value / gtot * 100) + "%";
+                }
+                else {
+                    v = "";
+                }
+                if(v != "0%")       //   no 0%
+                {
+                    elem.parentNode.parentNode.querySelector(".def_perc_t").value = v;
+                }
+                else
+                {
+                    elem.parentNode.parentNode.querySelector(".def_perc_t").value = "";
+                }
+            }
+        }
+
+        function calc_tot_def_perc(gtot, totq, totpd, totpp)
+        {   
+            ell = document.querySelectorAll(".def_tot_z.def_tot_q." + totq + "i");
+
+            for (let elem of ell)
+            {
+                if (gtot > 0)
+                { 
+                    v = Math.round(elem.value / gtot * 100) + "%";
+                    w = Math.round(elem.value / totValues[0] * 100) + "%";
+                }
+                else {
+                    v = "";
+                    w = "";
+                }
+                if(v != "0%")
+                {
+                    elem.parentNode.parentNode.querySelector("."+ totpd +"i").value = v;
+                    elem.parentNode.parentNode.querySelector("."+ totpp +"i").value = w;
+                }
+                else
+                {
+                    elem.parentNode.parentNode.querySelector("."+ totpd +"i").value = "";
+                    elem.parentNode.parentNode.querySelector("."+ totpp +"i").value = "";
+                }
+            }
+        }
+
+        function refresh_def_perc()
+        {
+            calc_tot_def_perc(gtot, "tot1", "tot2", "tot3"); 
+        }
+
+        function def_change()
+        {
+            calc_def_total_by_t(event.target, "def_dsp");
+        }        
+
         function listen()
         {
             window.totValues;
+            window.defTot = [0,0,0];
             //var el = document.querySelector("div.user-panel.main input[name=login]")
             window.plytaInput = document.querySelectorAll(".plyta_q");
+            window.defDSPInput = document.querySelectorAll(".def_dsp.def_table_i");
             
             // test label
             document.querySelector("label[class=testClick]").addEventListener("click",test,false);
@@ -199,6 +295,13 @@
                 calculate_p_size(plytaInput[i]);
                 plytaInput[i].addEventListener("change", pl_q_change, false);
             }  
+            
+            for (i of defDSPInput)
+            {
+                i.addEventListener("change", def_change, false);
+            }
+
+
         }
 
         document.addEventListener('DOMContentLoaded', listen);
@@ -425,20 +528,36 @@
             <td><p style="font-size: small;">% від плити</p></td>
         </tr>
         {% for def in defDSP %}
-        <tr>
+        <tr>    
             <td colspan="2">{{def}}</td>
             {% for i in range(1,15) %}
-            <td><input type="text" name="t{{i}}" class="def_table_i t{{i}}i" size="7"></td>
+            <td><input type="text" name="t{{i}}" class="def_table_i def_dsp t{{i}}i" size="7"></td>
             {% endfor %}
-            <td><input type="text" class="def_tot_z def_tot_q t{{i}}i" size="10" readonly></td>
-            <td><input type="text" class="def_tot_z def_tot_percd t{{i}}i" size="10" readonly></td>
-            <td><input type="text" class="def_tot_z def_tot_percp t{{i}}i" size="10" readonly></td>
-            <td><input type="text" class="def_tot_m def_tot_q t{{i}}i" size="10" readonly></td>
-            <td><input type="text" class="def_tot_m def_tot_percd t{{i}}i" size="10" readonly></td>
-            <td><input type="text" class="def_tot_m def_tot_percp t{{i}}i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_q tot1i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percd tot2i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percp tot3i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_q tot4i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percd tot5i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percp tot6i" size="10" readonly></td>
         </tr>
         {% endfor %}
-
+        <tr>
+            <td colspan="2">
+                <div>Всього</div> <div>%</div>
+            </td>
+            {% for i in range(1,15) %}
+            <td>
+                <div><input type="text" class="def_tot_t def_dsp t{{i}}i" size="7" readonly></div>
+                <div><input type="text" class="def_perc_t def_dsp t{{i}}i" size="7" readonly></div>
+            </td>
+            {% endfor %}
+            <td><div><input type="text" class="def_dsp_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percd_zm tot2i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percp_zm tot3i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_total_m tot4i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percd_m tot5i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percp_m tot6i" size="10" readonly></div><div>&nbsp;</div></td>
+        </tr>
 
     </table>
 
