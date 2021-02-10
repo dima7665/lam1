@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request
 import json
+from textures import get_textures_list
 
 app = Flask(__name__)
 
+texture_list = get_textures_list()
 rob_zm = ['22','','asd']
 
 @app.route("/")
@@ -11,9 +13,20 @@ def home():
     return render_template('home.html', title='Ламінування', rob_zm=rob_zm)
 
 
-@app.route("/home2")
+@app.route("/home2", methods=["POST","GET"])
 def home2():
-    return render_template('home2.html', title='Ламінування', rob_zm=rob_zm)
+    if request.method == "POST":
+        t1 = request.form.getlist("t1")
+        print(request.form.getlist("texture"))
+        with open('some.txt', 'a') as f:
+            f.write(str(len(t1)) + "\n")
+            for i in t1:
+                f.write(i + '\n')
+
+    if request.method == "GET":
+        print('GETTT')
+
+    return render_template('home2.html', title='Ламінування', texture_list=texture_list)
 
 @app.route("/robota")
 def robota():
