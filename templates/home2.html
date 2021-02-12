@@ -87,7 +87,6 @@
         {
             calculate_size(event.target, "z");
         }
-
         
         function plyta_tot_change(s, e)
         {
@@ -125,7 +124,7 @@
 
         function test()
         {   
-            alert(document.querySelector(".res_get .r3i").value);
+            alert('bfgsdig');
             
         }
 
@@ -295,6 +294,12 @@
             }            
         }
 
+        function write_hidden_date()
+        {
+            document.getElementById("top_date").value = document.getElementById("zm_date").value;
+            document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
+        }
+
         function chkInt(val)
         {
             if (val=="")
@@ -309,7 +314,7 @@
 
         function res_change()
         {
-            zm = document.querySelector(".nomer_zm").value;
+            zm = document.querySelector(".zm_nomer").value;
             tab = document.querySelector(".res_table");
 
             tab.querySelector(".res_zap .res_i").value = totValues[0];
@@ -343,6 +348,12 @@
             }}
         }
 
+        function change_datezm()
+        {
+            document.getElementById("zm_date").value = document.getElementById("top_date").value;
+            document.getElementById("zm_zmina").value = document.getElementById("top_zmina").value;
+            
+        }
 
         function listen()
         {
@@ -381,19 +392,22 @@
             }
             res_change();
 
-            //refresh_def_on_start();
+            document.getElementById("top_date").addEventListener("change", change_datezm, false);
+            document.getElementById("top_zmina").addEventListener("change", change_datezm, false);
+            write_hidden_date();
         }
 
         document.addEventListener('DOMContentLoaded', listen);
-        
-
     </script>
 {% endblock scripts %}
 
 {% block body %}
 <form action="/home2" method="post" autocomplete="off">
-    <input type="date" id="zm_date" value="2021-01-01">
-    Зміна № <select name="nomerZm" class="nomer_zm">
+    <div>
+    <input type="text" name="zm_date" id="zm_date" value="{{date[0]}}">
+    <input type="text" name="zm_zmina" id="zm_zmina" value="{{date[1]}}">
+    </div><p></p>
+    Зміна № <select name="zm_nomer" class="zm_nomer">
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>

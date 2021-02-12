@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 texture_list = get_textures_list()
 rob_zm = ['22','','asd']
+date = ['2021-02-10','2']
 
 @app.route("/")
 @app.route("/home")
@@ -22,11 +23,14 @@ def home2():
             f.write(str(len(t1)) + "\n")
             for i in t1:
                 f.write(i + '\n')
-
+    global date
     if request.method == "GET":
+        tdate = [request.args.get("top_date"), request.args.get("top_zmina")]
+        if tdate[0] and tdate[1]:
+            date = tdate
         print('GETTT')
 
-    return render_template('home2.html', title='Ламінування', texture_list=texture_list)
+    return render_template('home2.html', title='Ламінування', date=date, texture_list=texture_list)
 
 @app.route("/robota")
 def robota():

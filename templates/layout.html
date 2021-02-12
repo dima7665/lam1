@@ -6,15 +6,24 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
     </head>
     <body>
+        <form action="/test" method="get">
         <div class="btn-group">
-            <button type="button" class="nav_button">Робота зміни</button>
-            <button type="button" class="nav_button">Залишки 16Е1</button>
-            <button type="button" class="nav_button">Залишки 16Е05</button>
-            <button type="button" class="Nav_button">Залишки 18Е1</button>
-            <button type="button" class="nav_button">Залишки 18Е05</button>
-            <button type="button" class="nav_button">Упаковка</button>
+            <button type="submit" formaction="/home2" class="nav_button">Робота зміни</button>
+            <button type="submit" formaction="/" class="nav_button">Залишки 16Е1</button>
+            <button type="submit" class="nav_button">Залишки 16Е05</button>
+            <button type="submit" class="nav_button">Залишки 18Е1</button>
+            <button type="submit" class="nav_button">Залишки 18Е05</button>
+            <button type="submit" class="nav_button">Упаковка</button>
         </div>
-       
+        <p></p>
+        <div>
+            <input type="date" name="top_date" id="top_date" class="top_date">
+            <select name="top_zmina" id="top_zmina">
+                <option value="1">день</option>
+                <option value="2">ніч</option>
+            </select>
+        </div>
+        </form>       
             <h1>{{ title }}</h1>
             {% block body %}{% endblock body %}
     </body>
