@@ -37,7 +37,7 @@ def robota():
     return render_template('robota.html', title='Робота зміни')
 
 
-@app.route("/test", methods=["POST"])
+@app.route("/test", methods=["GET", "POST"])
 def test():
     n = request.form.getlist("f1")
     m = request.form.get("f2text")
