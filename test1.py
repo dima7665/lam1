@@ -1,12 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import json
 from textures import get_textures_list
+from datetime import date
 
 app = Flask(__name__)
 
 texture_list = get_textures_list()
 rob_zm = ['22','','asd']
-date = ['2021-02-10','2']
+gen_info = ['2021-02-10','2','']
 
 @app.route("/")
 @app.route("/home")
@@ -18,19 +19,22 @@ def home():
 def home2():
     if request.method == "POST":
         t1 = request.form.getlist("t1")
-        print(request.form.getlist("texture"))
+        #print(request.form.getlist("texture"))
         with open('some.txt', 'a') as f:
             f.write(str(len(t1)) + "\n")
             for i in t1:
                 f.write(i + '\n')
-    global date
+    global gen_info
     if request.method == "GET":
-        tdate = [request.args.get("top_date"), request.args.get("top_zmina")]
-        if tdate[0] and tdate[1]:
-            date = tdate
+        tinfo = request.args.getlist("top_info")
+        if tinfo:
+            gen_info = tinfo
+        else: 
+            gen_info = [date.today().isoformat(), '1','']   #додати ім'я майстра {3}
         print('GETTT')
 
-    return render_template('home2.html', title='Ламінування', date=date, texture_list=texture_list)
+    return render_template('home2.html', title='Ламінування', gen_info=gen_info, texture_list=texture_list)
+
 
 @app.route("/robota")
 def robota():

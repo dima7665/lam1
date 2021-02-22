@@ -298,6 +298,7 @@
         {
             document.getElementById("top_date").value = document.getElementById("zm_date").value;
             document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
+            document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
         }
 
         function chkInt(val)
@@ -352,7 +353,7 @@
         {
             document.getElementById("zm_date").value = document.getElementById("top_date").value;
             document.getElementById("zm_zmina").value = document.getElementById("top_zmina").value;
-            
+            document.getElementById("zm_maister").value = document.getElementById("top_maister").value;
         }
 
         function listen()
@@ -394,6 +395,7 @@
 
             document.getElementById("top_date").addEventListener("change", change_datezm, false);
             document.getElementById("top_zmina").addEventListener("change", change_datezm, false);
+            document.getElementById("top_maister").addEventListener("change", change_datezm, false);
             write_hidden_date();
         }
 
@@ -402,10 +404,11 @@
 {% endblock scripts %}
 
 {% block body %}
-<form action="/home2" method="post" autocomplete="off">
+<form target="_blank" action="/home2" method="post" autocomplete="off">
     <div>
-    <input type="text" name="zm_date" id="zm_date" value="{{date[0]}}">
-    <input type="text" name="zm_zmina" id="zm_zmina" value="{{date[1]}}">
+    <input type="text" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
+    <input type="text" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
+    <input type="text" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
     </div><p></p>
     Зміна № <select name="zm_nomer" class="zm_nomer">
         <option value="1">1</option>
@@ -568,6 +571,41 @@
                 <div><input type="text" class="i_p_size" size="8" readonly></div>
                 <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
             <td class="tot{{i*3+3}}"><div><input type="text" class="plyta_mis plyta_tot tot{{i*3+3}}i s3i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+        </tr>
+        <tr id="s4">
+            <td class='plyta'>Плита н/к</td>
+            <td><div>шт</div><div>м3</div><div>%</div></td>
+            {% for i in range(1,5) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr1i e1i" value="" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(5,8) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr1i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(8,12) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr2i e1i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(12,15) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr2i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td class="tot{{i*3+1}}"><div><input type="text" class="plyta_zm plyta_tot tot{{i*3+1}}i s4i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+2}}"><div><input type="text" class="plyta_dob plyta_tot tot{{i*3+2}}i s4i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+3}}"><div><input type="text" class="plyta_mis plyta_tot tot{{i*3+3}}i s4i e{{i+1}}i" size="8" readonly></div>
                 <div><input type="text" class="i_p_size" size="8" readonly></div>
                 <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
             {% endfor %}
