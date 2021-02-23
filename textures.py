@@ -22,3 +22,11 @@ def insert_textures_to_db():
 			cursor.execute("INSERT INTO Textures(name,code) VALUES (?,?)",tuple(line.strip().split('\t')))
 	conn.commit()
 	conn.close()
+
+def get_column_names(table):
+	conn = sqlite3.connect('db/lam1.db')
+	cursor = conn.cursor()
+	c = cursor.execute(f"SELECT * FROM {table}")
+	res = tuple([i[0] for i in c.description])
+	conn.close()
+	return res
