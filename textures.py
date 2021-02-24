@@ -1,7 +1,7 @@
 import sqlite3
 
 def get_textures_list():
-	textures=[]
+	textures = []
 	conn = sqlite3.connect('db/lam1.db')
 	cursor = conn.cursor()
 	cursor.execute("SELECT max(rowid) FROM Textures")
@@ -12,6 +12,18 @@ def get_textures_list():
 	conn.close()
 	return textures
 
+
+def get_maister_list():
+	maisters = []
+	conn = sqlite3.connect('db/lam1.db')
+	cursor = conn.cursor()
+	cursor.execute("SELECT count(maister_id) FROM maister WHERE active='1'")
+	n = cursor.fetchone()[0]
+	cursor.execute("SELECT general_name FROM maister WHERE active='1'")
+	for _ in range(n):
+		maisters.append(cursor.fetchone()[0])
+	conn.close()
+	return maisters
 
 
 def insert_textures_to_db():

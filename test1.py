@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
-from textures import get_textures_list, get_column_names
+from textures import get_textures_list, get_maister_list, get_column_names
 from datetime import date
 import sqlite3
 
@@ -8,8 +8,8 @@ import sqlite3
 app = Flask(__name__)
 
 texture_list = get_textures_list()
-rob_zm = ['22','','asd']
-gen_info = ['2021-02-10','2','test maister']
+maister_list = get_maister_list()
+gen_info = ['2021-02-10', '2', maister_list[0], '1']
 
 column_names = dict()
 for i in ['robota_zm']:                     # додати в список інші таблиці
@@ -24,7 +24,7 @@ def get_pressE(i):
         e = 1
     elif i in [5,6,7,12,13,14]:
         e = 2
-    return [p,e]
+    return [p,e,i]
 
 def update_command(table, names_lst, lst):
     if table == 'robota_zm':   
@@ -39,15 +39,15 @@ def update_command(table, names_lst, lst):
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', title='Ламінування', rob_zm=rob_zm)
+    return render_template('home.html', title='Ламінування')
 
 
 @app.route("/home2", methods=["POST","GET"])
 def home2():
+    global gen_info
     if request.method == "POST":
         t_lists = []
         cur_textures = request.form.getlist("texture")
-
         zinfo = request.form.getlist("zm_info")
         conn = sqlite3.connect("db/lam1.db")
         cur = conn.cursor()
@@ -82,20 +82,35 @@ def home2():
                 command = update_command('robota_zm', rob_zm_names, i)
                 print(tuple(i))
                 cur.execute(command)
-
         conn.commit()
         conn.close()
-
-    global gen_info
+        return render_template('home2.html', title='Ламінування', gen_info=gen_info, maister_list=maister_list, texture_list=texture_list)
+   
     if request.method == "GET":
+        t_lists = []
+        cur_textures = []
         tinfo = request.args.getlist("top_info")
         if tinfo:
             gen_info = tinfo
         else: 
-            gen_info = [date.today().isoformat(), '1','test maister']   #додати ім'я майстра {3}
+            gen_info = [date.today().isoformat(), '1', maister_list[0],'1']   #додати ім'я майстра {3}
         print('GETTT')
+        conn = sqlite3.connect('db/lam1.db')
+        cur = conn.cursor()
+        cur.execute(f"SELECT zmina_id FROM zmina WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
+        zm_id = cur.fetchone()
+        if zm_id:
+            zm_id = zm_id[0]
+            cur.execute(f"SELECT * FROM robota_zm WHERE zmina_id='{zm_id}'")
+            c = cur.fetchall()
+            for i in c:
+                t_lists.append((texture_list[i[2]-1],) + i[5:])
+        else:
+            pass
+        conn.close()
+        return render_template('home2.html', title='Ламінування', gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
 
-    return render_template('home2.html', title='Ламінування', gen_info=gen_info, texture_list=texture_list)
+    
 
 
 @app.route("/robota")

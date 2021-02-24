@@ -1,11 +1,15 @@
 {% extends "layout.html" %}
+
+{% set defDSP = ['Недошліфовка','Білі плями','Гофри','Раковини','Заовалення','Розслоєння','Тріщини','Прошліфовка','Білі крапки','Груба фракція'] %}
+{% set defLAM = ['Недостил плівки','Розрив ламінату','Розводи','Білизна,сивина','Складка','Налипання ламінату','Чорні крапки','Масло','Забруднення','Комахи','Мех.пошкодження'] %}
+{% set defIMP = ['Складка','Тріщина плівки','Білі плями','Чорні плями'] %}
+
 {% block scripts %}
     <script>
         const koef = 0.08052;
-        kk = {{rob_zm|tojson|safe}};
 
         function calculate_p_size(el)
-        {
+        {   
             calculate_size(el, "p");
             sum = calculate_perc(el, "plyta_q");
 
@@ -83,7 +87,6 @@
         {
             calculate_size(event.target, "z");
         }
-
         
         function plyta_tot_change(s, e)
         {
@@ -121,17 +124,15 @@
 
         function test()
         {   
-            if (kk[1]=="")
-            {
-                alert(kk[1]);
-            }
+            alert('bfgsdig');
             
         }
 
-        function calc_sum1s()
-        {
-            el = event.target;
-
+        function make_total_global(){
+            z = document.querySelector(".zquantity.tot7i").value * 2;
+            m = document.querySelector(".zquantity.tot9i").value * 2;
+            totValues = [z, m];
+            res_change();
         }
 
         function sum1s(pr, e)
@@ -146,7 +147,7 @@
         }
 
         function sum_p(s, e)
-        {   
+        {
             n = document.querySelectorAll("."+s+"i."+e+"i.plyta_q");
             sum = sumVal(n);
             el = document.querySelector(".plyta_zm."+s+"i."+e+"i");
@@ -155,9 +156,9 @@
             sum_t(e, el.className.slice(-13,-9));
 
             // Разом
-            n = document.querySelectorAll(".plyta_zm."+s+"i");
+            n = document.querySelectorAll(".plyta_zm."+s+"i:not(.e3i)");
             sum = sumVal(n);
-            el = document.querySelector(".plyta_zmt."+s+"i");
+            el = document.querySelector(".plyta_zm."+s+"i.e3i");
             el.value = sum;
             calculate_size(el, "p");
             calculate_perc(el, "plyta_tot");
@@ -174,14 +175,197 @@
             el = document.querySelector("."+e+"i."+t+"i.zquantity");
             el.value = sum/2;
             calculate_size(el, "z");
+            make_total_global();
+        }
 
+        function calc_def_total_by_t(el, def)
+        {   
+            t = el.name;
+            ell = document.querySelectorAll(".def_table_i." + def + "." + t + "i");
+            sumt = sumVal(ell);
+            if(sumt != 0)
+            {
+                document.querySelector(".def_tot_t." + def + "." + t + "i").value = sumt;
+            }
+            else{
+                document.querySelector(".def_tot_t." + def + "." + t + "i").value = "";
+            }
+            
+
+            ell = el.parentNode.parentNode.querySelectorAll(".def_table_i");
+            sumd = sumVal(ell);
+            if(sumd != 0)
+            {
+                el.parentNode.parentNode.querySelector(".tot1i").value = sumd;
+            }
+            else{
+                el.parentNode.parentNode.querySelector(".tot1i").value = "";
+            }
+            
+            // all defs of group
+            gtot = sumVal(document.querySelectorAll(".def_tot_z." + def + "_q.tot1i"));
+            document.querySelector("." + def + "_total_zm.tot1i").value = gtot;
+
+            calc_def_perc(gtot, def);
+            calc_tot_def_perc(gtot, "tot1", "tot2", "tot3", def);
+        }
+
+        function calc_def_perc(gtot, def)
+        {
+            ell = document.querySelectorAll(".def_tot_t." + def);
+            for (elem of ell)
+            {
+                if (gtot > 0)       //  no NaN
+                { 
+                    v = Math.round(elem.value / gtot * 100) + "%";
+                }
+                else {
+                    v = "";
+                }
+                if(v != "0%")       //   no 0%
+                {
+                    elem.parentNode.parentNode.querySelector(".def_perc_t").value = v;
+                }
+                else
+                {
+                    elem.parentNode.parentNode.querySelector(".def_perc_t").value = "";
+                }
+            }
+        }
+
+        // def - група дефектів
+        // totq - стовпчик кількість дефектів в рядку
+        // totpd - стовпчик відсоток від дефектів групи
+        // totpp - стовпчик відсоток від плити
+        // gtot - заг. к-сть дефектів групи
+        function calc_tot_def_perc(gtot, totq, totpd, totpp, def)
+        {   
+            ell = document.querySelectorAll(".def_tot_z." + def + "_q." + totq + "i");
+
+            for (let elem of ell)
+            {
+                if (gtot > 0)
+                { 
+                    v = Math.round(elem.value / gtot * 100) + "%";
+                    w = Math.round(elem.value / totValues[0] * 100) + "%";
+                }
+                else {
+                    v = "";
+                    w = "";
+                }
+                if(v != "0%")
+                {
+                    elem.parentNode.parentNode.querySelector("."+ totpd +"i").value = v;
+                    elem.parentNode.parentNode.querySelector("."+ totpp +"i").value = w;
+                }
+                else
+                {
+                    elem.parentNode.parentNode.querySelector("."+ totpd +"i").value = "";
+                    elem.parentNode.parentNode.querySelector("."+ totpp +"i").value = "";
+                }
+            }
+        }
+
+        function refresh_def_perc()
+        {
+            calc_tot_def_perc(gtot, "tot1", "tot2", "tot3"); 
+        }
+
+        function def_change()
+        {
+            calc_def_total_by_t(event.target, event.target.parentNode.parentNode.className);
+        }        
+
+        // refresh_def_on_start
+        // тут була проблема схожа на вічний цикл. в першому циклі алерт спрацювув один раз перед командою calc_def_total_by_t
+        // після чого всередині calc_def_total_by_t спрацьовували почергово алерти на початку і в кінці, не вертаючись в refresh 
+        // перший раз className елемента показувало t1, а потім постійно t12. Розставляючи алерти шукаючи причину,
+        // проблема зникла сама по собі.  Без алертів сторінка просто не відповідала і з часом питало зупинити скрипти
+
+        function refresh_def_on_start(defInp)
+        {           
+            for (let i=0; i<defInp.length/14; i++)
+            {   
+                calc_def_total_by_t(defInp[i*14], defInp[i*14].parentNode.parentNode.className);
+            }
+            for (let i=0; i<14; i++)
+            {
+                calc_def_total_by_t(defInp[i], defInp[i].parentNode.parentNode.className);
+            }            
+        }
+
+        function write_hidden_date()
+        {
+            document.getElementById("top_date").value = document.getElementById("zm_date").value;
+            document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
+            document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
+        }
+
+        function chkInt(val)
+        {
+            if (val=="")
+            {
+                return 0;
+            }
+            else
+            {
+                return parseInt(val);
+            }
+        }
+
+        function res_change()
+        {
+            zm = document.querySelector(".zm_nomer").value;
+            tab = document.querySelector(".res_table");
+
+            tab.querySelector(".res_zap .res_i").value = totValues[0];
+            
+            ell = document.querySelectorAll(".res_end .res_i");
+            for(j=0;j<2;j++){
+            for (el of ell)
+            {
+                r = el.className.slice(-3, -1);
+                if (r=="r1")
+                {
+                    el.value = chkInt(tab.querySelector(".res_start ." + r + "i").value) + chkInt(tab.querySelector(".res_get ." + r + "i").value) - chkInt(tab.querySelector(".res_zap ." + r + "i").value);
+                }
+                else
+                {
+                    if (chkInt(r.slice(1,))-2 == zm)
+                    {
+                        el.value = chkInt(tab.querySelector(".res_end .r1i").value)  
+                                   - chkInt(tab.querySelector(".res_end .r3i").value)
+                                   - chkInt(tab.querySelector(".res_end .r4i").value)
+                                   - chkInt(tab.querySelector(".res_end .r5i").value)
+                                   - chkInt(tab.querySelector(".res_end .r6i").value)
+                                   + chkInt(tab.querySelector(".res_end ." + r + "i").value)
+                                   + chkInt(tab.querySelector(".res_get ." + r + "i").value);
+                    }
+                    else
+                    {
+                        el.value = chkInt(tab.querySelector(".res_start ." + r + "i").value) - chkInt(tab.querySelector(".res_get ." + r + "i").value);
+                    }
+                }
+            }}
+        }
+
+        function change_datezm()
+        {
+            document.getElementById("zm_date").value = document.getElementById("top_date").value;
+            document.getElementById("zm_zmina").value = document.getElementById("top_zmina").value;
+            document.getElementById("zm_maister").value = document.getElementById("top_maister").value;
         }
 
         function listen()
         {
+            window.totValues;
+            window.defTot = [0,0,0];
             //var el = document.querySelector("div.user-panel.main input[name=login]")
-
             window.plytaInput = document.querySelectorAll(".plyta_q");
+            window.defDSPInput = document.querySelectorAll(".def_table_i.def_dsp");
+            window.defLAMInput = document.querySelectorAll(".def_table_i.def_lam");
+            window.defIMPInput = document.querySelectorAll(".def_table_i.def_imp");
+            window.resTableGet = document.querySelectorAll(".res_get .res_i");
             
             // test label
             document.querySelector("label[class=testClick]").addEventListener("click",test,false);
@@ -193,253 +377,472 @@
                 calculate_p_size(plytaInput[i]);
                 plytaInput[i].addEventListener("change", pl_q_change, false);
             }  
+            
+            for (di of [defDSPInput, defLAMInput, defIMPInput])
+            {
+                for (i of di)
+                {
+                    i.addEventListener("change", def_change, false);
+                }
+                refresh_def_on_start(di);
+            }
+
+            for (i of resTableGet)
+            {
+                i.addEventListener("change", res_change, false);
+            }
+            res_change();
+
+            document.getElementById("top_date").addEventListener("change", change_datezm, false);
+            document.getElementById("top_zmina").addEventListener("change", change_datezm, false);
+            document.getElementById("top_maister").addEventListener("change", change_datezm, false);
+            write_hidden_date();
         }
 
         document.addEventListener('DOMContentLoaded', listen);
-
-
     </script>
 {% endblock scripts %}
 
 {% block body %}
-    <input type="date" id="zm_date" value="2021-01-01">
+<form target="_blank" action="/home" method="post" autocomplete="off">
+    <div>
+    <input type="text" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
+    <input type="text" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
+    <input type="text" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
+    </div><p></p>
+    Зміна № <select name="zm_nomer" class="zm_nomer">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+    </select>
     <label class="testClick">Click</label>
+    <input type="submit" value="Зберегти">
     <h2>Назва таблиці</h2>
     <p></p>
     <table id="main_table">  
         <tr id="row_header">
-            <td colspan="2" rowspan="2">Випуск продукції</td>
-            <td colspan="7">Прес1</td>
-            <td colspan="7">Прес2</td>
-            <td colspan="3">Всього Е1</td>
-            <td colspan="3">Всього Е05</td>
-            <td colspan="3">Разом</td>
+            <th colspan="2" rowspan="2">Випуск продукції</th>
+            <th colspan="7">Прес1</th>
+            <th colspan="7">Прес2</th>
+            <th colspan="3" rowspan="3">Всього Е1</th>
+            <th colspan="3" rowspan="3">Всього Е05</th>
+            <th colspan="3" rowspan="3">Разом</th>
         </tr>
         <tr id="row_E">
-            <td colspan="4">Е1</td>
-            <td colspan="3">Е05</td>
-            <td colspan="4">Е1</td>
-            <td colspan="3">Е05</td>
+            <th colspan="4">Е1</th>
+            <th colspan="3">Е05</th>
+            <th colspan="4">Е1</th>
+            <th colspan="3">Е05</th>
         </tr>
         <tr id="pidsumok">
             <td colspan="2">підсумок</td>
-            <td><input type="text" class="pr1i e1i total_i" size="7" readonly></td>
-            <td><input type="text" class="pr1i e1i size_i" size="7" readonly></td>
-            <td><input type="text" class="pr1i e1i perc_i" size="7" readonly></td>
+            <td><input type="text" class="pr1i e1i total_i" size="8" readonly></td>
+            <td><input type="text" class="pr1i e1i size_i" size="8" readonly></td>
+            <td><input type="text" class="pr1i e1i perc_i" size="8" readonly></td>
             <td></td>
-            <td><input type="text" class="pr1i e2i total_i" size="7" readonly></td>
-            <td><input type="text" class="pr1i e2i size_i" size="7" readonly></td>
-            <td><input type="text" class="pr1i e2i perc_i" size="7" readonly></td>
-            <td><input type="text" class="pr2i e1i total_i" size="7" readonly></td>
-            <td><input type="text" class="pr2i e1i size_i" size="7" readonly></td>
-            <td><input type="text" class="pr2i e1i perc_i" size="7" readonly></td>
+            <td><input type="text" class="pr1i e2i total_i" size="8" readonly></td>
+            <td><input type="text" class="pr1i e2i size_i" size="8" readonly></td>
+            <td><input type="text" class="pr1i e2i perc_i" size="8" readonly></td>
+            <td><input type="text" class="pr2i e1i total_i" size="8" readonly></td>
+            <td><input type="text" class="pr2i e1i size_i" size="8" readonly></td>
+            <td><input type="text" class="pr2i e1i perc_i" size="8" readonly></td>
             <td></td>
-            <td><input type="text" class="pr2i e2i total_i" size="7" readonly></td>
-            <td><input type="text" class="pr2i e2i size_i" size="7" readonly></td>
-            <td><input type="text" class="pr2i e2i perc_i" size="7" readonly></td>
+            <td><input type="text" class="pr2i e2i total_i" size="8" readonly></td>
+            <td><input type="text" class="pr2i e2i size_i" size="8" readonly></td>
+            <td><input type="text" class="pr2i e2i perc_i" size="8" readonly></td>
         </tr>
         <tr>
             <td colspan="2">Текстури</td>
-            {% for i in range(14) %}
-            <td><input type="text" name="texture" value="{{i}}" size="7"></td>
+            {% for i in range(1,15) %}
+                <td>
+                <select name="texture" style="width: 75px;">
+                    <option value="" selected></option>
+                    {% for tex in texture_list %}
+                    <option value="{{tex}}">{{tex}}</option>
+                    {% endfor %}
+                </select>
+                </td>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td><input type="text" class="txt" size="8" value="За зміну" readonly></td>
+            <td><input type="text" class="txt" size="8" value="За добу" readonly></td>
+            <td><input type="text" class="txt" size="8" value="За місяць" readonly></td>
             {% endfor %}
         </tr>
         <tr id="s1">
             <td class='plyta'>Плита 1 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
-            <td class="t1"><div><input type="text" id="t1s1i" class="plyta_q t1i s1i pr1i e1i" value="" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t2"><div><input type="text" id="t2s1i" class="plyta_q t2i s1i pr1i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t3"><div><input type="text" id="t3s1i" class="plyta_q t3i s1i pr1i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t4"><div><input type="text" id="t4s1i" class="plyta_q t4i s1i pr1i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t5"><div><input type="text" id="t5s1i" class="plyta_q t5i s1i pr1i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t6"><div><input type="text" id="t6s1i" class="plyta_q t6i s1i pr1i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t7"><div><input type="text" id="t7s1i" class="plyta_q t7i s1i pr1i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t8"><div><input type="text" id="t8s1i" class="plyta_q t8i s1i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t9"><div><input type="text" id="t9s1i" class="plyta_q t9i s1i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t10"><div><input type="text" id="t10s1i" class="plyta_q t10i s1i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t11"><div><input type="text" id="t11s1i" class="plyta_q t11i s1i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t12"><div><input type="text" id="t12s1i" class="plyta_q t12i s1i pr2i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t13"><div><input type="text" id="t13s1i" class="plyta_q t13i s1i pr2i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t14"><div><input type="text" id="t14s1i" class="plyta_q t14i s1i pr2i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot1"><div><input type="text" id="tote1s1z" class="plyta_zm plyta_tot tot1i s1i e1i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot2"><div><input type="text" id="tote1s1d" class="plyta_dob plyta_tot tot2i s1i e1i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot3"><div><input type="text" id="tote1s1m" class="plyta_mis plyta_tot tot3i s1i e1i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot4"><div><input type="text" id="tote2s1z" class="plyta_zm plyta_tot tot4i s1i e2i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot5"><div><input type="text" id="tote2s1d" class="plyta_dob plyta_tot tot5i s1i e2i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot6"><div><input type="text" id="tote2s1m" class="plyta_mis plyta_tot tot6i s1i e2i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot7"><div><input type="text" id="tots1z" class="plyta_zmt plyta_tot tot7i s1i e3i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot8"><div><input type="text" id="tots1d" class="plyta_dobt plyta_tot tot8i s1i e3i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot9"><div><input type="text" id="tots1m" class="plyta_mist plyta_tot tot9i s1i e3i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-             
+            {% for i in range(1,5) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s1i pr1i e1i" value="" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(5,8) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s1i pr1i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(8,12) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s1i pr2i e1i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(12,15) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s1i pr2i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td class="tot{{i*3+1}}"><div><input type="text" class="plyta_zm plyta_tot tot{{i*3+1}}i s1i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+2}}"><div><input type="text" class="plyta_dob plyta_tot tot{{i*3+2}}i s1i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+3}}"><div><input type="text" class="plyta_mis plyta_tot tot{{i*3+3}}i s1i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
         </tr>
         <tr id="s2">
             <td class='plyta'>Плита 2 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
-            <td class="t1"><div><input type="text" id="t1s2i" class="plyta_q t1i s2i pr1i e1i" value="" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t2"><div><input type="text" id="t2s2i" class="plyta_q t2i s2i pr1i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t3"><div><input type="text" id="t3s2i" class="plyta_q t3i s2i pr1i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t4"><div><input type="text" id="t4s2i" class="plyta_q t4i s2i pr1i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t5"><div><input type="text" id="t5s2i" class="plyta_q t5i s2i pr1i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t6"><div><input type="text" id="t6s2i" class="plyta_q t6i s2i pr1i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t7"><div><input type="text" id="t7s2i" class="plyta_q t7i s2i pr1i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t8"><div><input type="text" id="t8s2i" class="plyta_q t8i s2i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t9"><div><input type="text" id="t9s2i" class="plyta_q t9i s2i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t10"><div><input type="text" id="t10s2i" class="plyta_q t10i s2i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t11"><div><input type="text" id="t11s2i" class="plyta_q t11i s2i pr2i e1i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t12"><div><input type="text" id="t12s2i" class="plyta_q t12i s2i pr2i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t13"><div><input type="text" id="t13s2i" class="plyta_q t13i s2i pr2i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="t14"><div><input type="text" id="t14s2i" class="plyta_q t14i s2i pr2i e2i" size="7"></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot1"><div><input type="text" id="tote1s2z" class="plyta_zm plyta_tot tot1i s2i e1i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot2"><div><input type="text" id="tote1s2d" class="plyta_dob plyta_tot tot2i s2i e1i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot3"><div><input type="text" id="tote1s2m" class="plyta_mis plyta_tot tot3i s2i e1i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot4"><div><input type="text" id="tote2s2z" class="plyta_zm plyta_tot tot4i s2i e2i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot5"><div><input type="text" id="tote2s2d" class="plyta_dob plyta_tot tot5i s2i e2i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot6"><div><input type="text" id="tote2s2m" class="plyta_mis plyta_tot tot6i s2i e2i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot7"><div><input type="text" id="tots2z" class="plyta_zmt plyta_tot tot7i s2i e3i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot8"><div><input type="text" id="tots2d" class="plyta_dobt plyta_tot tot8i s2i e3i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
-            <td class="tot9"><div><input type="text" id="tots2m" class="plyta_mist plyta_tot tot9i s2i e3i" size="7" readonly></div>
-                <div><input type="text" class="i_p_size" size="7" readonly></div>
-                <div><input type="text" class="i_p_perc" size="7" readonly></div></td>
+            {% for i in range(1,5) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s2i pr1i e1i" value="" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(5,8) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s2i pr1i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(8,12) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s2i pr2i e1i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(12,15) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s2i pr2i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td class="tot{{i*3+1}}"><div><input type="text" class="plyta_zm plyta_tot tot{{i*3+1}}i s2i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+2}}"><div><input type="text" class="plyta_dob plyta_tot tot{{i*3+2}}i s2i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+3}}"><div><input type="text" class="plyta_mis plyta_tot tot{{i*3+3}}i s2i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+        </tr>
+        <tr id="s3">
+            <td class='plyta'>Плита 3 сорт</td>
+            <td><div>шт</div><div>м3</div><div>%</div></td>
+            {% for i in range(1,5) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s3i pr1i e1i" value="" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(5,8) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s3i pr1i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(8,12) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s3i pr2i e1i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(12,15) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s3i pr2i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td class="tot{{i*3+1}}"><div><input type="text" class="plyta_zm plyta_tot tot{{i*3+1}}i s3i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+2}}"><div><input type="text" class="plyta_dob plyta_tot tot{{i*3+2}}i s3i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+3}}"><div><input type="text" class="plyta_mis plyta_tot tot{{i*3+3}}i s3i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+        </tr>
+        <tr id="s4">
+            <td class='plyta'>Плита н/к</td>
+            <td><div>шт</div><div>м3</div><div>%</div></td>
+            {% for i in range(1,5) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr1i e1i" value="" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(5,8) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr1i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(8,12) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr2i e1i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(12,15) %}
+            <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s4i pr2i e2i" size="8"></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td class="tot{{i*3+1}}"><div><input type="text" class="plyta_zm plyta_tot tot{{i*3+1}}i s4i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+2}}"><div><input type="text" class="plyta_dob plyta_tot tot{{i*3+2}}i s4i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            <td class="tot{{i*3+3}}"><div><input type="text" class="plyta_mis plyta_tot tot{{i*3+3}}i s4i e{{i+1}}i" size="8" readonly></div>
+                <div><input type="text" class="i_p_size" size="8" readonly></div>
+                <div><input type="text" class="i_p_perc" size="8" readonly></div></td>
+            {% endfor %}
         </tr>
         <tr id="row_zapr">
             <td class='plyta'>Всього </td>
             <td><div>запр</div><div>м3</div></td>
-            <td class="t1"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t2"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t3"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t4"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t5"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t6"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t7"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t8"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t9"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t10"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t11"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t12"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t13"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="t14"><div><input class="zquantity" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot1i e1i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot2i e1i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot3i e1i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot4i e2i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot5i e2i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot6i e2i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot7i e3i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot8i e3i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
-            <td class="tot1"><div><input class="zquantity tot9i e3i" type="text" size="7" readonly></div>
-                <div><input type="text" class="i_z_size" size="7" readonly></div>
+            {% for i in range(1,15) %}
+            <td class="t{{i}}"><div><input class="zquantity" type="text" size="8" readonly></div>
+                <div><input type="text" class="i_z_size" size="8" readonly></div>
+            {% endfor %}
+            {% for i in range(3) %}
+            <td class="tot{{i*3+1}}"><div><input class="zquantity tot{{i*3+1}}i e{{i+1}}i" value="" type="text" size="8" readonly></div>
+                <div><input type="text" class="i_z_size" size="8" readonly></div>
+            <td class="tot{{i*3+2}}"><div><input class="zquantity tot{{i*3+2}}i e{{i+1}}i" type="text" size="8" readonly></div>
+                <div><input type="text" class="i_z_size" size="8" readonly></div>
+            <td class="tot{{i*3+3}}"><div><input class="zquantity tot{{i*3+3}}i e{{i+1}}i" type="text" size="8" readonly></div>
+                <div><input type="text" class="i_z_size" size="8" readonly></div>
+            {% endfor %}
         </tr>
     </table>
+
+    <p>&nbsp;</p>
+
+    <table id="descr_table">
+        <tr>
+            <td colspan="2">Дата ДСП</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="table2i t{{i}}i" size="8"></td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td colspan="2">Витримка в пресі</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="table2i t{{i}}i" size="8"></td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td rowspan="2">Температура</td>
+            <td>t верх</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="table2i t{{i}}i" size="8"></td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>t низ</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="table2i t{{i}}i" size="8"></td>
+            {% endfor %}
+        </tr>
+    </table>
+
+    <p>&nbsp;</p>
+
+    <table id="defekt_table">
+        <tr>
+            <td colspan="16" rowspan="2">Дефекти ДСП</td>
+            <td colspan="3">за зміну</td>
+            <td colspan="3">за місяць</td>
+        </tr>
+        <tr>
+            <td><p style="font-size: small;">к-сть дефектів</p></td>
+            <td><p style="font-size: small;">% від дефектів</p></td>
+            <td><p style="font-size: small;">% від плити</p></td>
+            <td><p style="font-size: small;">к-сть дефектів</p></td>
+            <td><p style="font-size: small;">% від дефектів</p></td>
+            <td><p style="font-size: small;">% від плити</p></td>
+        </tr>
+        {% for def in defDSP %}
+        <tr class="def_dsp">    
+            <td colspan="2">{{def}}</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="def_table_i def_dsp t{{i}}i" size="8"></td>
+            {% endfor %}
+            <td><input type="text" class="def_tot_z def_dsp_q tot1i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percd tot2i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percp tot3i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_dsp_q tot4i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percd tot5i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percp tot6i" size="10" readonly></td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="2">
+                <div>Всього</div> <div>%</div>
+            </td>
+            {% for i in range(1,15) %}
+            <td>
+                <div><input type="text" class="def_tot_t def_dsp t{{i}}i" size="8" readonly></div>
+                <div><input type="text" class="def_perc_t def_dsp t{{i}}i" size="8" readonly></div>
+            </td>
+            {% endfor %}
+            <td><div><input type="text" class="def_dsp_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percd_zm tot2i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percp_zm tot3i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_total_m tot4i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percd_m tot5i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_dsp_percp_m tot6i" size="10" readonly></div><div>&nbsp;</div></td>
+        </tr>
+
+        <tr>
+            <td colspan="16" rowspan="2">Дефекти ламінування</td>
+            <td colspan="3">за зміну</td>
+            <td colspan="3">за місяць</td>
+        </tr>
+        <tr>
+            <td><p style="font-size: small;">к-сть дефектів</p></td>
+            <td><p style="font-size: small;">% від дефектів</p></td>
+            <td><p style="font-size: small;">% від плити</p></td>
+            <td><p style="font-size: small;">к-сть дефектів</p></td>
+            <td><p style="font-size: small;">% від дефектів</p></td>
+            <td><p style="font-size: small;">% від плити</p></td>
+        </tr>
+        {% for def in defLAM %}
+        <tr class="def_lam">    
+            <td colspan="2">{{def}}</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="def_table_i def_lam t{{i}}i" value="" size="8"></td>
+            {% endfor %}
+            <td><input type="text" class="def_tot_z def_lam_q tot1i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percd tot2i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percp tot3i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_lam_q tot4i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percd tot5i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percp tot6i" size="10" readonly></td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="2">
+                <div>Всього</div> <div>%</div>
+            </td>
+            {% for i in range(1,15) %}
+            <td>
+                <div><input type="text" class="def_tot_t def_lam t{{i}}i" size="8" readonly></div>
+                <div><input type="text" class="def_perc_t def_lam t{{i}}i" size="8" readonly></div>
+            </td>
+            {% endfor %}
+            <td><div><input type="text" class="def_lam_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_lam_percd_zm tot2i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_lam_percp_zm tot3i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_lam_total_m tot4i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_lam_percd_m tot5i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_lam_percp_m tot6i" size="10" readonly></div><div>&nbsp;</div></td>
+        </tr>
+
+        <tr>
+            <td colspan="16" rowspan="2">Дефекти імпрегнування</td>
+            <td colspan="3">за зміну</td>
+            <td colspan="3">за місяць</td>
+        </tr>
+        <tr>
+            <td><p style="font-size: small;">к-сть дефектів</p></td>
+            <td><p style="font-size: small;">% від дефектів</p></td>
+            <td><p style="font-size: small;">% від плити</p></td>
+            <td><p style="font-size: small;">к-сть дефектів</p></td>
+            <td><p style="font-size: small;">% від дефектів</p></td>
+            <td><p style="font-size: small;">% від плити</p></td>
+        </tr>
+        {% for def in defIMP %}
+        <tr class="def_imp">    
+            <td colspan="2">{{def}}</td>
+            {% for i in range(1,15) %}
+            <td><input type="text" name="t{{i}}" class="def_table_i def_imp t{{i}}i" value="" size="8"></td>
+            {% endfor %}
+            <td><input type="text" class="def_tot_z def_imp_q tot1i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percd tot2i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_z def_tot_percp tot3i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_imp_q tot4i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percd tot5i" size="10" readonly></td>
+            <td><input type="text" class="def_tot_m def_tot_percp tot6i" size="10" readonly></td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="2">
+                <div>Всього</div> <div>%</div>
+            </td>
+            {% for i in range(1,15) %}
+            <td>
+                <div><input type="text" class="def_tot_t def_imp t{{i}}i" size="8" readonly></div>
+                <div><input type="text" class="def_perc_t def_imp t{{i}}i" size="8" readonly></div>
+            </td>
+            {% endfor %}
+            <td><div><input type="text" class="def_imp_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_imp_percd_zm tot2i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_imp_percp_zm tot3i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_imp_total_m tot4i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_imp_percd_m tot5i" size="10" readonly></div><div>&nbsp;</div></td>
+            <td><div><input type="text" class="def_imp_percp_m tot6i" size="10" readonly></div><div>&nbsp;</div></td>
+        </tr>
+
+    </table>
+
+    <p>&nbsp;</p>
+
+    <table id="results" class="res_table">
+
+        <tr>
+            <td>&nbsp;</td>
+            <td>шт І с</td>
+            <td>м3</td>
+            <td>№1</td>
+            <td>№2</td>
+            <td>№3</td>
+            <td>№4</td>
+        </tr>
+        <tr class="res_start">
+            <td>Залишок</td>
+            <td><input type="text" class="res_i r1i" size="10" value="100"></td>
+            <td><input type="text" class="res_m r2i" size="10" readonly></td>
+            <td><input type="text" class="res_i r3i" size="10" value="20"></td>
+            <td><input type="text" class="res_i r4i" size="10" value="30"></td>
+            <td><input type="text" class="res_i r5i" size="10" value="35"></td>
+            <td><input type="text" class="res_i r6i" size="10" value="15"></td>
+        </tr>
+        <tr class="res_get">
+            <td>Одержано</td>
+            <td><input type="text" class="res_i r1i" size="10" value=""></td>
+            <td><input type="text" class="res_m r2i" size="10" readonly></td>
+            <td rowspan="2"><input type="text" class="res_i r3i" size="10" style="height: 40px;" value=""></td>
+            <td rowspan="2"><input type="text" class="res_i r4i" size="10" style="height: 40px;" value=""></td>
+            <td rowspan="2"><input type="text" class="res_i r5i" size="10" style="height: 40px;" value=""></td>
+            <td rowspan="2"><input type="text" class="res_i r6i" size="10" style="height: 40px;" value=""></td>
+        </tr>
+        <tr class="res_zap">
+            <td>Запресовано</td>
+            <td><input type="text" class="res_i r1i" size="10" readonly></td>
+            <td><input type="text" class="res_m r2i" size="10" readonly></td>
+        </tr>
+        <tr class="res_end">
+            <td>Залишок</td>
+            <td><input type="text" class="res_i r1i" size="10" readonly></td>
+            <td><input type="text" class="res_m r2i" size="10" readonly></td>
+            <td><input type="text" class="res_i r3i" size="10" readonly></td>
+            <td><input type="text" class="res_i r4i" size="10" readonly></td>
+            <td><input type="text" class="res_i r5i" size="10" readonly></td>
+            <td><input type="text" class="res_i r6i" size="10" readonly></td>
+        </tr>
+    </table>
+</form>
 {% endblock body %}

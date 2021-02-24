@@ -22,7 +22,20 @@
                 <option value="1">день</option>
                 <option value="2">ніч</option>
             </select>
-            <input type="text" name="top_info" id="top_maister" class="top_maister">
+            <p></p>
+            Майтер зміни: 
+            <select name="top_info" id="top_maister" class="top_maister">
+                {% for m in maister_list %}
+                <option value="{{m}}">{{m}}</option>
+                {% endfor %}
+            </select>
+            &nbsp;&nbsp; 
+            Зміна № <select name="top_info" id="top_nomer" class="top_nomer">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
         </div>
         </form>       
             <h1>{{ title }}</h1>

@@ -8,6 +8,7 @@
     <script>
         const koef = 0.08052;
 
+
         function calculate_p_size(el)
         {   
             calculate_size(el, "p");
@@ -124,7 +125,7 @@
 
         function test()
         {   
-            alert('bfgsdig');
+            alert(document.querySelectorAll('input.t1i').length);
             
         }
 
@@ -185,10 +186,10 @@
             sumt = sumVal(ell);
             if(sumt != 0)
             {
-                document.querySelector(".def_tot_t." + def + "." + t + "i").value = sumt;
+                document.querySelector(".def_tot_t." + def + "." + t + "ii").value = sumt;
             }
             else{
-                document.querySelector(".def_tot_t." + def + "." + t + "i").value = "";
+                document.querySelector(".def_tot_t." + def + "." + t + "ii").value = "";
             }
             
 
@@ -299,6 +300,28 @@
             document.getElementById("top_date").value = document.getElementById("zm_date").value;
             document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
             document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
+            document.getElementById("top_nomer").value = document.getElementById("zm_nomer").value;
+        }
+
+        function load_texture_names(){
+            hid_tex = document.querySelectorAll('.hidden_textures');
+            texture_fields = document.querySelectorAll('.textures_select');
+            n = 14;
+            for (i=0;i<14;i++){
+                texture_fields[i].value = hid_tex[i].value;
+            }
+        }
+
+        function load_values(){
+            lists = {{t_lists|safe}};
+            for (let lst of lists){
+                t = lst[1];
+                document.querySelector('input.t' + t + 'h').value = lst[0];
+                fields = document.querySelectorAll('input.t' + t + 'i');
+                for (i=0;i<fields.length;i++){
+                    fields[i].value = lst[i+2];
+                }
+            }
         }
 
         function chkInt(val)
@@ -315,7 +338,7 @@
 
         function res_change()
         {
-            zm = document.querySelector(".zm_nomer").value;
+            zm = document.getElementById("zm_nomer").value;
             tab = document.querySelector(".res_table");
 
             tab.querySelector(".res_zap .res_i").value = totValues[0];
@@ -354,10 +377,13 @@
             document.getElementById("zm_date").value = document.getElementById("top_date").value;
             document.getElementById("zm_zmina").value = document.getElementById("top_zmina").value;
             document.getElementById("zm_maister").value = document.getElementById("top_maister").value;
+            document.getElementById("zm_nomer").value = document.getElementById("top_nomer").value;
         }
 
         function listen()
         {
+            load_values();
+            load_texture_names();
             window.totValues;
             window.defTot = [0,0,0];
             //var el = document.querySelector("div.user-panel.main input[name=login]")
@@ -393,10 +419,11 @@
             }
             res_change();
 
-            document.getElementById("top_date").addEventListener("change", change_datezm, false);
-            document.getElementById("top_zmina").addEventListener("change", change_datezm, false);
-            document.getElementById("top_maister").addEventListener("change", change_datezm, false);
-            write_hidden_date();
+            document.getElementById("top_date").addEventListener("input", change_datezm, false);
+            document.getElementById("top_zmina").addEventListener("input", change_datezm, false);
+            document.getElementById("top_maister").addEventListener("input", change_datezm, false);
+            document.getElementById("top_nomer").addEventListener("input", change_datezm, false);
+            write_hidden_date();            
         }
 
         document.addEventListener('DOMContentLoaded', listen);
@@ -404,18 +431,18 @@
 {% endblock scripts %}
 
 {% block body %}
+<div>
+    {% for i in range(14) %}
+    <input type="hidden" class="hidden_textures t{{i+1}}h" value=''>
+    {% endfor %}
+</div>
 <form target="_blank" action="/home2" method="post" autocomplete="off">
     <div>
     <input type="text" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
     <input type="text" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
     <input type="text" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
+    <input type="text" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
     </div><p></p>
-    Зміна № <select name="zm_nomer" class="zm_nomer">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-    </select>
     <label class="testClick">Click</label>
     <input type="submit" value="Зберегти">
     <h2>Назва таблиці</h2>
@@ -456,7 +483,7 @@
             <td colspan="2">Текстури</td>
             {% for i in range(1,15) %}
                 <td>
-                <select name="texture" style="width: 75px;">
+                <select name="texture" class="textures_select" style="width: 75px;">
                     <option value="" selected></option>
                     {% for tex in texture_list %}
                     <option value="{{tex}}">{{tex}}</option>
@@ -694,8 +721,8 @@
             </td>
             {% for i in range(1,15) %}
             <td>
-                <div><input type="text" class="def_tot_t def_dsp t{{i}}i" size="8" readonly></div>
-                <div><input type="text" class="def_perc_t def_dsp t{{i}}i" size="8" readonly></div>
+                <div><input type="text" class="def_tot_t def_dsp t{{i}}ii" size="8" readonly></div>
+                <div><input type="text" class="def_perc_t def_dsp t{{i}}ii" size="8" readonly></div>
             </td>
             {% endfor %}
             <td><div><input type="text" class="def_dsp_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
@@ -739,8 +766,8 @@
             </td>
             {% for i in range(1,15) %}
             <td>
-                <div><input type="text" class="def_tot_t def_lam t{{i}}i" size="8" readonly></div>
-                <div><input type="text" class="def_perc_t def_lam t{{i}}i" size="8" readonly></div>
+                <div><input type="text" class="def_tot_t def_lam t{{i}}ii" size="8" readonly></div>
+                <div><input type="text" class="def_perc_t def_lam t{{i}}ii" size="8" readonly></div>
             </td>
             {% endfor %}
             <td><div><input type="text" class="def_lam_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
@@ -784,8 +811,8 @@
             </td>
             {% for i in range(1,15) %}
             <td>
-                <div><input type="text" class="def_tot_t def_imp t{{i}}i" size="8" readonly></div>
-                <div><input type="text" class="def_perc_t def_imp t{{i}}i" size="8" readonly></div>
+                <div><input type="text" class="def_tot_t def_imp t{{i}}ii" size="8" readonly></div>
+                <div><input type="text" class="def_perc_t def_imp t{{i}}ii" size="8" readonly></div>
             </td>
             {% endfor %}
             <td><div><input type="text" class="def_imp_total_zm tot1i" size="10" readonly></div><div>&nbsp;</div></td>
