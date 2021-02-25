@@ -43,6 +43,7 @@ def home():
 
 
 @app.route("/home2", methods=["POST","GET"])
+@app.route("/home16", methods=["POST","GET"])
 def home2():
     global gen_info
     if request.method == "POST":
@@ -89,6 +90,11 @@ def home2():
     if request.method == "GET":
         t_lists = []
         cur_textures = []
+        rule = request.url_rule
+        if rule.rule == "/home16":
+            koef, thick = 0.08052, '16'
+        else:
+            koef, thick = 0.090585, '18'
         tinfo = request.args.getlist("top_info")
         if tinfo:
             gen_info = tinfo
@@ -108,7 +114,7 @@ def home2():
         else:
             pass
         conn.close()
-        return render_template('home2.html', title='Ламінування', gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
+        return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
 
     
 

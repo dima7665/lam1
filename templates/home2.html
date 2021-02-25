@@ -6,8 +6,7 @@
 
 {% block scripts %}
     <script>
-        const koef = 0.08052;
-
+        const koef = {{koef}};
 
         function calculate_p_size(el)
         {   
@@ -125,7 +124,7 @@
 
         function test()
         {   
-            alert(document.querySelectorAll('input.t1i').length);
+            alert(koef);
             
         }
 
@@ -313,7 +312,7 @@
         }
 
         function load_values(){
-            lists = {{t_lists|safe}};
+            lists = {{ t_lists|safe }};
             for (let lst of lists){
                 t = lst[1];
                 document.querySelector('input.t' + t + 'h').value = lst[0];
