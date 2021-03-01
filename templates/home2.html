@@ -124,7 +124,7 @@
 
         function test()
         {   
-            alert(koef);
+            alert(document.getElementById('thickness').value);
             
         }
 
@@ -441,6 +441,7 @@
     <input type="text" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
     <input type="text" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
     <input type="text" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
+    <input type="hidden" name="thickness" id="thickness" value="{{gen_info[4]}}">
     </div><p></p>
     <label class="testClick">Click</label>
     <input type="submit" value="Зберегти">
@@ -497,7 +498,7 @@
             {% endfor %}
         </tr>
         <tr id="s1">
-            <td class='plyta'>Плита 1 сорт</td>
+            <td class='plyta'>Плита &nbsp; 1 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
             {% for i in range(1,5) %}
             <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s1i pr1i e1i" value="" size="8"></div>
@@ -532,7 +533,7 @@
             {% endfor %}
         </tr>
         <tr id="s2">
-            <td class='plyta'>Плита 2 сорт</td>
+            <td class='plyta'>Плита &nbsp; 2 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
             {% for i in range(1,5) %}
             <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s2i pr1i e1i" value="" size="8"></div>
@@ -567,7 +568,7 @@
             {% endfor %}
         </tr>
         <tr id="s3">
-            <td class='plyta'>Плита 3 сорт</td>
+            <td class='plyta'>Плита &nbsp; 3 сорт</td>
             <td><div>шт</div><div>м3</div><div>%</div></td>
             {% for i in range(1,5) %}
             <td class="t{{i}}"><div><input type="text" name="t{{i}}" class="plyta_q t{{i}}i s3i pr1i e1i" value="" size="8"></div>
