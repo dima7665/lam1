@@ -123,9 +123,9 @@ def home2():
     
 
 
-@app.route("/robota")
+@app.route("/work", methods=["POST","GET"])
 def robota():
-    return render_template('robota.html', title='Робота зміни')
+    return render_template('work.html', title='Рух плити', maister_list=maister_list, texture_list=texture_list)
 
 
 @app.route("/test", methods=["GET", "POST"])
