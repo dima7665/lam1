@@ -5,7 +5,6 @@
 {% endblock scripts %}
 
 {% block body %}
-
 <table id="main_table">
     <tr>
         <td rowspan="2">16 E 1</td>
@@ -24,39 +23,25 @@
         <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
         <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
     </tr>
+    {% for t in t_lists %}
     <tr>
-        <td><input type="text"></td>
+        <td><input type="text" value="{{t[0]}}"></td>
 
         <td><input type="text" size="7"></td>
         <td><input type="text" size="7"></td>
         <td><input type="text" size="7"></td>
         <td><input type="text" size="7"></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+        {% for i in range(16) %}
+        <td><input type="text" size="7" value="{{t[i+4]}}"></td>
+        {% endfor %}
 
         <td><input type="text" size="7"></td>
         <td><input type="text" size="7"></td>
         <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+        <td><input type="text" size="7"></td>       
     </tr>
+    {% endfor %}
     <tr><td colspan="17">&nbsp;</td></tr>
     <tr>
         <td>Всього</td>

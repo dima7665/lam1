@@ -113,7 +113,6 @@ def home2():
             c = cur.fetchall()
             for i in c:
                 t_lists.append((texture_list[i[2]-1],) + i[6:])
-            
             gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
         else:
             pass
@@ -125,14 +124,60 @@ def home2():
 
 @app.route("/work", methods=["POST","GET"])
 def robota():
-    return render_template('work.html', title='Рух плити', maister_list=maister_list, texture_list=texture_list)
+    if request.method == 'POST':
+        pass
+    if request.method == 'GET':
+        t_lists = []
+        rule = request.url_rule
+        if rule.rule == '/work':
+            koef, thick, eq = 0.08052, '16', '1'
+        tinfo = request.args.getlist("top_info")
+        if tinfo:
+            gen_info = tinfo + [thick, eq]
+        else: 
+            gen_info = [date.today().isoformat(), '1', '', '', thick, eq]
+        print(gen_info)
+        conn = sqlite3.connect('db/lam1.db')
+        cur = conn.cursor()
+        cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
+        zm_id = cur.fetchone()
+        if zm_id:
+           # cur.execute(f"SELECT name,sort1,sort2,sort3,sort4 FROM robota_zm INNER JOIN textures ON robota_zm.textures_id=textures.textures_id WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}' AND e_quality='{eq}'")
+            cur.execute(f"""SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4)
+                FROM (SELECT textures_id,zmina_id,thickness,e_quality,NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4
+                FROM remainders
+                WHERE source='nas' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+                UNION ALL
+                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL 
+                FROM remainders
+                WHERE source='zis' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+                UNION ALL
+                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4
+                FROM remainders
+                WHERE source='zif' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+                UNION ALL
+                SELECT textures_id,zmina_id,thickness,e_quality,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+                FROM robota_zm
+                WHERE zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq})
+                INNER JOIN textures t USING(textures_id)
+                GROUP BY t.name
+            """)
+            c = cur.fetchall()
+            for i in c:
+                print(i)
+                t_lists.append(tuple('' if x==None or x==0.0 else x for x in i))
+            gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
+        else:
+            pass
+        conn.close()
+    return render_template('work.html', title='Рух плити', koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=t_lists)
 
 
 @app.route("/test", methods=["GET", "POST"])
 def test():
     n = request.form.getlist("f1")
     m = request.form.get("f2text")
-    return render_template("test.html", n=n,m=m)
+    return render_template("test.html", n=n, m=m)
 
 
 @app.route("/about")
