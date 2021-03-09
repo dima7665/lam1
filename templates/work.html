@@ -1,7 +1,54 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
+<script>
 
+    function test()
+        {   
+            alert(document.querySelectorAll("input.vl").length);
+          
+        }
+    
+    function add_tablerow()
+    {
+        alert(maxrowid);
+        b = document.getElementById("main_table_body");
+        c = maxrowid;
+        newtr = b.insertRow(-1);
+        maxrowid = maxrowid + 1;
+        newtr.className = "tr_row" + c;
+        newtd = newtr.insertCell(0);
+        inp = document.createElement("input");
+        inp.setAttribute("type","text");
+        inp.setAttribute("name","trow"+c);
+        inp.setAttribute("class","txt row"+c);
+        inp.setAttribute("value",document.getElementById("add_tex_s").value);
+        inp.setAttribute("readonly","true");
+        inp.setAttribute("ondblclick","del_row()");
+        newtd.appendChild(inp);
+        for (let i=1;i<25;i++){
+            newtd = newtr.insertCell(i);
+            inp = document.createElement("input");
+            inp.setAttribute("type","text");
+            inp.setAttribute("name","trow"+c);
+            inp.setAttribute("class","txt row"+c+" col"+i);
+            inp.setAttribute("size","7");
+            newtd.appendChild(inp);
+        }       
+    }
+
+    function del_row()
+    {
+        event.target.parentNode.parentNode.remove();   
+    }
+
+    function listen(){
+        window.maxrowid = document.getElementById("main_table_body").querySelectorAll("tr").length;
+        document.getElementById("add_row_button").addEventListener("click", add_tablerow, false);
+
+    }
+    document.addEventListener('DOMContentLoaded', listen);
+</script>
 {% endblock scripts %}
 
 {% block body %}
@@ -23,25 +70,29 @@
         <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
         <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
     </tr>
+    <tbody id="main_table_body">
+    {% set rc = namespace(m=0) %}
     {% for t in t_lists %}
-    <tr>
-        <td><input type="text" value="{{t[0]}}"></td>
+    <tr class="tr_row{{rc.m}}">
+        <td><input type="text" name="trow{{rc.m}}" class="txt row{{rc.m}} col0" value="{{t[0]}}" readonly></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col1" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col2" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col3" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col4" size="7"></td>
 
         {% for i in range(16) %}
-        <td><input type="text" size="7" value="{{t[i+4]}}"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col{{i+5}}" size="7" value="{{t[i+4]}}"></td>
         {% endfor %}
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>       
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col22" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col23" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col24" size="7"></td>
+        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col25" size="7"></td>       
     </tr>
+    {% set rc.m = rc.m + 1 %}
     {% endfor %}
+    </tbody>
     <tr><td colspan="17">&nbsp;</td></tr>
     <tr>
         <td>Всього</td>
@@ -77,5 +128,13 @@
         <td><input type="text" size="7"></td>
     </tr>
 </table>
+<form id="f_add">
+    <button type="button" id="add_row_button" value="123">TEST</button>
+    <select id="add_tex_s">
+        {% for tex in texture_list %}
+        <option value="{{tex}}">{{tex}}</option>
+        {% endfor %}
+    </select>
+</form>
 
 {% endblock body %}
