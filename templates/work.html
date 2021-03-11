@@ -8,10 +8,17 @@
             alert(document.querySelectorAll("input.vl").length);
           
         }
+
+    function write_hidden_date()
+        {
+            document.getElementById("top_date").value = document.getElementById("zm_date").value;
+            document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
+            document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
+            document.getElementById("top_nomer").value = document.getElementById("zm_nomer").value;
+        }
     
     function add_tablerow()
     {
-        alert(maxrowid);
         b = document.getElementById("main_table_body");
         c = maxrowid;
         newtr = b.insertRow(-1);
@@ -20,21 +27,39 @@
         newtd = newtr.insertCell(0);
         inp = document.createElement("input");
         inp.setAttribute("type","text");
-        inp.setAttribute("name","trow"+c);
-        inp.setAttribute("class","txt row"+c);
+        inp.setAttribute("name","tvalues");
+        inp.setAttribute("class","txt row" + c + " col0");
         inp.setAttribute("value",document.getElementById("add_tex_s").value);
         inp.setAttribute("readonly","true");
         inp.setAttribute("ondblclick","del_row()");
         newtd.appendChild(inp);
-        for (let i=1;i<25;i++){
+        for (let i=1;i<9;i++){
             newtd = newtr.insertCell(i);
             inp = document.createElement("input");
             inp.setAttribute("type","text");
             inp.setAttribute("name","trow"+c);
-            inp.setAttribute("class","txt row"+c+" col"+i);
+            inp.setAttribute("class","vl row"+c+" col"+i);
             inp.setAttribute("size","7");
-            newtd.appendChild(inp);
-        }       
+            newtd.appendChild(inp);  
+        }
+        for (let i=9;i<21;i++){
+            newtd = newtr.insertCell(i);
+            inp = document.createElement("input");
+            inp.setAttribute("type","text");
+            inp.setAttribute("name","tvalues");
+            inp.setAttribute("class","vl row"+c+" col"+i);
+            inp.setAttribute("size","7");
+            newtd.appendChild(inp);  
+        }
+        for (let i=21;i<25;i++){
+            newtd = newtr.insertCell(i);
+            inp = document.createElement("input");
+            inp.setAttribute("type","text");
+            inp.setAttribute("name","tres");
+            inp.setAttribute("class","vl row"+c+" col"+i);
+            inp.setAttribute("size","7");
+            newtd.appendChild(inp);  
+        }      
     }
 
     function del_row()
@@ -42,92 +67,130 @@
         event.target.parentNode.parentNode.remove();   
     }
 
+    function check_textures(){
+        f_list = document.getElementById("main_table_body").querySelectorAll(".txt");
+        t_list=[]
+        for(let i of f_list){
+            t_list.push(i.value);
+        }
+        if(new Set(t_list).size !== t_list.length){
+            for(let i of t_list){
+                if(t_list.indexOf(i) !== t_list.lastIndexOf(i)){
+                    alert("В списку повтюрюється текстура  ---  " + i);
+                    return false;
+                }
+            }
+            alert("Тектури в списку повторюються");
+            return false;
+        }
+        return true;
+    }
+
     function listen(){
         window.maxrowid = document.getElementById("main_table_body").querySelectorAll("tr").length;
         document.getElementById("add_row_button").addEventListener("click", add_tablerow, false);
-
+        write_hidden_date();
     }
     document.addEventListener('DOMContentLoaded', listen);
+
+//   <form name="ff1" method="post" onsubmit="return validateForm();">  Зробити перевірку на дублювання текстур
 </script>
 {% endblock scripts %}
 
 {% block body %}
-<table id="main_table">
-    <tr>
-        <td rowspan="2">16 E 1</td>
-        <td colspan="4">Залишки на початок</td>
-        <td colspan="4">Зроблено</td>
-        <td colspan="4">Здано на склад</td>
-        <td colspan="4">Отримано зі зскладу</td>
-        <td colspan="4">Здано на фіз</td>
-        <td colspan="4">Залишки на кінець</td>
-    </tr>
-    <tr>
-        <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
-        <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
-        <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
-        <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
-        <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
-        <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
-    </tr>
-    <tbody id="main_table_body">
-    {% set rc = namespace(m=0) %}
-    {% for t in t_lists %}
-    <tr class="tr_row{{rc.m}}">
-        <td><input type="text" name="trow{{rc.m}}" class="txt row{{rc.m}} col0" value="{{t[0]}}" readonly></td>
+<form name="main_form" method="POST" target="_blank" action="/work" onsubmit="return check_textures()" autocomplete="off">
+    <div>
+        <input type="hidden" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
+        <input type="hidden" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
+        <input type="hidden" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
+        <input type="hidden" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
+        <input type="text" name="thickness" id="thickness" value="{{gen_info[4]}}">
+        <input type="text" name="e_quality" id="e_quality" value="{{gen_info[5]}}">
+    </div>
+    <input type="submit" value="SAVE">
 
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col1" size="7"></td>
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col2" size="7"></td>
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col3" size="7"></td>
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col4" size="7"></td>
+    <table id="main_table">
+        <thead>
+        <tr>
+            <td rowspan="2">{{title[10:]}}</td>
+            <td colspan="4">Залишки на початок</td>
+            <td colspan="4">Зроблено</td>
+            <td colspan="4">Здано на склад</td>
+            <td colspan="4">Отримано зі зскладу</td>
+            <td colspan="4">Здано на фіз</td>
+            <td colspan="4">Залишки на кінець</td>
+        </tr>
+        <tr>
+            <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
+            <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
+            <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
+            <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
+            <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
+            <td>1c</td><td>2c</td><td>3c</td><td>н/к</td>
+        </tr>
+        </thead>
+        <tbody id="main_table_body">
+        {% set rc = namespace(m=0) %}
+        {% for t in t_lists %}
+        <tr class="tr_row{{rc.m}}">
+            <td><input type="text" name="tvalues" class="txt row{{rc.m}} col0" value="{{t[0]}}" readonly></td>
+            {% for i in range(4) %}
+            <td><input type="text" class="vl row{{rc.m}} col{{i+1}}" size="7" readonly></td>
+            {% endfor %}
 
-        {% for i in range(16) %}
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col{{i+5}}" size="7" value="{{t[i+4]}}"></td>
+            {% for i in range(4) %}
+            <td><input type="text" class="vl row{{rc.m}} col{{i+5}}" size="7" value="{{t[i+4]}}" readonly></td>
+            {% endfor %}
+
+            {% for i in range(12) %}
+            <td><input type="text" name="tvalues" class="vl row{{rc.m}} col{{i+9}}" size="7" value="{{t[i+8]}}"></td>
+            {% endfor %}
+
+            {% for i in range(4) %}
+            <td><input type="text" name="tres" class="vl row{{rc.m}} col{{i+22}}" size="7" readonly></td>
+            {% endfor %}
+        </tr>
+        {% set rc.m = rc.m + 1 %}
         {% endfor %}
+        </tbody>
+        <tfoot>
+        <tr><td colspan="17">&nbsp;</td></tr>
+        <tr>
+            <td>Всього</td>
 
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col22" size="7"></td>
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col23" size="7"></td>
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col24" size="7"></td>
-        <td><input type="text" name="trow{{rc.m}}" class="vl row{{rc.m}} col25" size="7"></td>       
-    </tr>
-    {% set rc.m = rc.m + 1 %}
-    {% endfor %}
-    </tbody>
-    <tr><td colspan="17">&nbsp;</td></tr>
-    <tr>
-        <td>Всього</td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
 
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-        <td><input type="text" size="7"></td>
-    </tr>
-</table>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+            <td><input type="text" size="7"></td>
+        </tr>
+        </tfoot>
+    </table>
+</form>
 <form id="f_add">
     <button type="button" id="add_row_button" value="123">TEST</button>
     <select id="add_tex_s">
@@ -136,5 +199,5 @@
         {% endfor %}
     </select>
 </form>
-
+<p><h1>Зробити перевірку на дублювання текстур</h1></p>
 {% endblock body %}

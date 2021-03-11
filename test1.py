@@ -12,7 +12,7 @@ maister_list = get_maister_list()
 gen_info = ['2021-02-10', '2', maister_list[0], '1']
 
 column_names = dict()
-for i in ['robota_zm']:                     # додати в список інші таблиці
+for i in ['robota_zm','remainders']:                     # додати в список інші таблиці
     column_names[i] = get_column_names(i)
 
 def get_pressE(i, thick):
@@ -34,7 +34,34 @@ def update_command(table, names_lst, lst):
         command = command[:-1]
         command += f" WHERE zmina_id = {lst[0]} AND textures_id = {lst[1]} AND press = {lst[2]} AND e_quality = {lst[3]} AND thickness={lst[4]}"
         return command
+    if table == 'remainders':
+        command = "UPDATE remainders SET"
+        print('------ ', names_lst, '-----', lst)
+        for x in range(5,9):
+            command += f" {names_lst[x+1]} = '{lst[x]}',"
+        command = command[:-1]
+        command += f" WHERE zmina_id = {lst[0]} AND textures_id = {lst[1]} AND thickness={lst[2]} AND e_quality = {lst[3]} AND source='{lst[4]}'"
+        return command
 
+def make_texture_lists_for_remainders(lst):
+    tmp_lst = [lst[i*13:(i+1)*13] for i in range(len(lst)//13)]
+    res_lst, tl = [], []
+    for i in tmp_lst:
+        t = i[0]
+        tl.append(t)
+        for x in range(3):
+            line = i[1+x*4:1+(x+1)*4]
+            if all(z=='' or z==None for z in line):
+                continue
+            if(x==0):
+                source = 'nas'
+            elif(x==1):
+                source = 'zis'
+            else:
+                source = 'zif'
+            res_lst.append([t, source] + line)
+            print("***********  ", res_lst[-1])
+    return tl, res_lst
 
 @app.route("/")
 @app.route("/home")
@@ -74,10 +101,10 @@ def home2():
             if cur_textures[i-1] == '':
                 continue
             pe = get_pressE(i, thick)
-            texture_id = texture_list.index(cur_textures[i-1]) + 1      # id starts from 1 in db table
+            cur.execute(f"SELECT textures_id FROM textures WHERE name={cur_textures[i-1]}")
+            texture_id = cur.fetchone()[0]
             t_lists.append([zm_id[0], texture_id] + pe + request.form.getlist(f"t{i}"))
 
-        cur.execute
         rob_zm_names = column_names['robota_zm']
         for i in t_lists:
             try:
@@ -116,7 +143,7 @@ def home2():
             gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
         else:
             pass
-        conn.close()
+        conn.close() 
         return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
 
     
@@ -124,8 +151,52 @@ def home2():
 
 @app.route("/work", methods=["POST","GET"])
 def robota():
+    global gen_info
     if request.method == 'POST':
-        pass
+        t_list = []
+        thick, eq = request.form.get("thickness"), request.form.get("e_quality")
+        print(thick,eq)
+        koef = 0.08052
+        zinfo = request.form.getlist('zm_info')
+        cur_textures = request.form.getlist("tvalues")
+        print(cur_textures)
+        cur_textures, values_list = make_texture_lists_for_remainders(cur_textures)
+        print(zinfo)
+        conn = sqlite3.connect("db/lam1.db")
+        cur = conn.cursor()
+        cur.execute(f"SELECT maister_id FROM maister WHERE general_name='{zinfo[2]}'")
+        maister_id = cur.fetchone()[0]
+        nomer_zm = request.form.get('zm_nomer')
+
+        # checking for 'zmina' and insert new if needed       
+        cur.execute(f"SELECT zmina_id, nomer_zm, maister_id FROM zmina WHERE zm_date='{zinfo[0]}' AND zm_zmina='{zinfo[1]}'")
+        zm_id = cur.fetchone()
+        if zm_id:
+            if zm_id[2] != maister_id or nomer_zm != zm_id[1]:
+                cur.execute(f"UPDATE zmina SET nomer_zm='{nomer_zm}', maister_id='{maister_id}' WHERE zm_date='{zinfo[0]}' AND zm_zmina='{zinfo[1]}'")
+        else:
+            cur.execute(f"INSERT INTO zmina (zm_date,zm_zmina,nomer_zm,maister_id) VALUES ('{zinfo[0]}', '{zinfo[1]}', '{nomer_zm}', '{maister_id}')")
+            cur.execute(f"SELECT zmina_id FROM zmina WHERE zm_date='{zinfo[0]}' AND zm_zmina='{zinfo[1]}'")
+            zm_id = cur.fetchone()
+
+        for t in values_list:
+            cur.execute(f"SELECT textures_id FROM textures WHERE name='{t[0]}'")
+            print(t[0], t)
+            texture_id = cur.fetchone()[0]
+            t_list.append([zm_id[0], texture_id, thick, eq] + t[1:])
+        
+        remainders_names = column_names['remainders']
+        for i in t_list:
+            try:
+                print(tuple(i))
+                cur.execute(f"INSERT INTO remainders {remainders_names[1:]} VALUES {tuple(i)}")
+            except sqlite3.IntegrityError:
+                command = update_command('remainders', remainders_names, i)
+                cur.execute(command)
+        conn.commit()
+        conn.close()
+        return render_template('work.html', title='Рух плити', gen_info=gen_info, koef=koef, thick=thick, maister_list=maister_list, texture_list=texture_list)
+
     if request.method == 'GET':
         t_lists = []
         rule = request.url_rule
@@ -170,7 +241,8 @@ def robota():
         else:
             pass
         conn.close()
-    return render_template('work.html', title='Рух плити', koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=t_lists)
+        title = 'Рух плити ' + thick + ' E' + ('05' if eq=='2' else '1')
+        return render_template('work.html', title=title, koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=t_lists)
 
 
 @app.route("/test", methods=["GET", "POST"])
