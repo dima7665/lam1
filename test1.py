@@ -208,30 +208,35 @@ def robota():
         else: 
             gen_info = [date.today().isoformat(), '1', '', '', thick, eq]
         print(gen_info)
+        mdate = gen_info[0].split('-')[0:2]
         conn = sqlite3.connect('db/lam1.db')
         cur = conn.cursor()
         cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
         zm_id = cur.fetchone()
         if zm_id:
            # cur.execute(f"SELECT name,sort1,sort2,sort3,sort4 FROM robota_zm INNER JOIN textures ON robota_zm.textures_id=textures.textures_id WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}' AND e_quality='{eq}'")
-            cur.execute(f"""SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4)
-                FROM (SELECT textures_id,zmina_id,thickness,e_quality,NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4
-                FROM remainders
-                WHERE source='nas' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+            cur.execute(f"""SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4),sum(ms1),sum(ms2),sum(ms3),sum(ms4)
+            FROM (SELECT textures_id,zmina_id,thickness,e_quality,NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4,NULL ms1,NULL ms2,NULL ms3,NULL ms4
+                    FROM remainders
+                    WHERE source='nas' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
                 UNION ALL
-                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL 
-                FROM remainders
-                WHERE source='zis' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL 
+                    FROM remainders
+                    WHERE source='zis' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
                 UNION ALL
-                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4
-                FROM remainders
-                WHERE source='zif' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL
+                    FROM remainders
+                    WHERE source='zif' AND zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
                 UNION ALL
-                SELECT textures_id,zmina_id,thickness,e_quality,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
-                FROM robota_zm
-                WHERE zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq})
-                INNER JOIN textures t USING(textures_id)
-                GROUP BY t.name
+                SELECT textures_id,zmina_id,thickness,e_quality,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+                    FROM robota_zm
+                    WHERE zmina_id={zm_id[0]} AND thickness={thick} AND e_quality={eq}
+                UNION ALL
+                SELECT textures_id,NULL,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1 ms1,sort2 ms2,sort3 ms3,sort4 ms4
+                    FROM month_rem
+                    WHERE month='{mdate[1]}' AND year={mdate[0]} AND thickness={thick} AND e_quality={eq})
+            INNER JOIN textures t USING(textures_id)
+            GROUP BY t.name
             """)
             c = cur.fetchall()
             for i in c:
@@ -243,6 +248,12 @@ def robota():
         conn.close()
         title = 'Рух плити ' + thick + ' E' + ('05' if eq=='2' else '1')
         return render_template('work.html', title=title, koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=t_lists)
+
+
+@app.route("/mf", methods=["POST", "GET"])
+def monfin():
+    if request.method == "GET":
+        return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list)    
 
 
 @app.route("/test", methods=["GET", "POST"])

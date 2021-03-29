@@ -3,22 +3,53 @@
 {% block scripts %}
 <script>
 
-    function test()
-        {   
-            alert(document.querySelectorAll("input.vl").length);
+    function test(){   
+        alert(document.querySelectorAll("input.vl[name=tvalues]").length);
           
-        }
+    }
 
-    function write_hidden_date()
-        {
-            document.getElementById("top_date").value = document.getElementById("zm_date").value;
-            document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
-            document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
-            document.getElementById("top_nomer").value = document.getElementById("zm_nomer").value;
-        }
+    function chkint(x){
+        return parseInt(x) || 0;
+    }
+
+    function write_hidden_date(){
+        document.getElementById("top_date").value = document.getElementById("zm_date").value;
+        document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
+        document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
+        document.getElementById("top_nomer").value = document.getElementById("zm_nomer").value;
+    }
     
-    function add_tablerow()
-    {
+    function values_changed(){
+        count_row_result(event.target);
+        count_col_result(event.target.className.split(" ")[2].slice(3,));
+    }
+
+    function count_col_result(col){
+        sum = 0;
+        for(let i of document.querySelectorAll("input.vl.col" + col)){
+            sum += chkint(i.value);
+        }
+        document.querySelector("input.bres.col" + col).value = sum;
+    }
+
+    function count_row_result(et){
+        col_n = (et.className.split(" ")[2].slice(3) - 1) % 4;
+        row_n = et.parentNode.parentNode.className.slice(6);
+        tr = document.querySelector("tr.tr_row" + row_n);
+        tr.querySelector("input.vl.col" + (col_n + 21)).value = chkint(tr.querySelector("input.vl.col" + (col_n + 1)).value) + chkint(tr.querySelector("input.vl.col" + (col_n + 5)).value) -
+            tr.querySelector("input.vl.col" + (col_n + 9)).value + chkint(tr.querySelector("input.vl.col" + (col_n + 13)).value) - tr.querySelector("input.vl.col" + (col_n + 17)).value;
+        count_col_result(col_n + 21);
+    }
+
+    function refresh_count_row_results(){
+        ell = document.querySelectorAll(".vl.col1, .vl.col2, .vl.col3, .vl.col4");
+        alert("refersh  " + ell.length)
+        for(let i of ell){
+            count_row_result(i);
+        }
+    }
+
+    function add_tablerow(){
         b = document.getElementById("main_table_body");
         c = maxrowid;
         newtr = b.insertRow(-1);
@@ -40,6 +71,7 @@
             inp.setAttribute("name","trow"+c);
             inp.setAttribute("class","vl row"+c+" col"+i);
             inp.setAttribute("size","7");
+            inp.setAttribute("readonly","true");
             newtd.appendChild(inp);  
         }
         for (let i=9;i<21;i++){
@@ -49,7 +81,8 @@
             inp.setAttribute("name","tvalues");
             inp.setAttribute("class","vl row"+c+" col"+i);
             inp.setAttribute("size","7");
-            newtd.appendChild(inp);  
+            newtd.appendChild(inp); 
+            inp.addEventListener("change", values_changed, false); 
         }
         for (let i=21;i<25;i++){
             newtd = newtr.insertCell(i);
@@ -58,12 +91,12 @@
             inp.setAttribute("name","tres");
             inp.setAttribute("class","vl row"+c+" col"+i);
             inp.setAttribute("size","7");
+            inp.setAttribute("readonly","true");
             newtd.appendChild(inp);  
         }      
     }
 
-    function del_row()
-    {
+    function del_row(){
         event.target.parentNode.parentNode.remove();   
     }
 
@@ -87,9 +120,18 @@
     }
 
     function listen(){
-        window.maxrowid = document.getElementById("main_table_body").querySelectorAll("tr").length;
-        document.getElementById("add_row_button").addEventListener("click", add_tablerow, false);
         write_hidden_date();
+        window.maxrowid = document.getElementById("main_table_body").querySelectorAll("tr").length; // для обчислення id нового рядка
+        document.getElementById("add_row_button").addEventListener("click", add_tablerow, false);   // кнопка додавання нового рядка
+        for (let i of document.querySelectorAll("input.vl[name=tvalues]")){
+            i.addEventListener("change", values_changed, false);
+        }
+        test();
+
+        for (let n=1;n<25;n++){
+            count_col_result(n);
+        } 
+        refresh_count_row_results();
     }
     document.addEventListener('DOMContentLoaded', listen);
 
@@ -130,12 +172,13 @@
         </tr>
         </thead>
         <tbody id="main_table_body">
+        <tr></tr>
         {% set rc = namespace(m=0) %}
         {% for t in t_lists %}
         <tr class="tr_row{{rc.m}}">
             <td><input type="text" name="tvalues" class="txt row{{rc.m}} col0" value="{{t[0]}}" readonly></td>
             {% for i in range(4) %}
-            <td><input type="text" class="vl row{{rc.m}} col{{i+1}}" size="7" readonly></td>
+            <td><input type="text" class="vl row{{rc.m}} col{{i+1}}" size="7" value="{{t[i+20]}}" readonly></td>
             {% endfor %}
 
             {% for i in range(4) %}
@@ -147,7 +190,7 @@
             {% endfor %}
 
             {% for i in range(4) %}
-            <td><input type="text" name="tres" class="vl row{{rc.m}} col{{i+22}}" size="7" readonly></td>
+            <td><input type="text" name="tres" class="vl row{{rc.m}} col{{i+21}}" size="7" readonly></td>
             {% endfor %}
         </tr>
         {% set rc.m = rc.m + 1 %}
@@ -155,38 +198,11 @@
         </tbody>
         <tfoot>
         <tr><td colspan="17">&nbsp;</td></tr>
-        <tr>
+        <tr id="bottom_results">
             <td>Всього</td>
-
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
-            <td><input type="text" size="7"></td>
+            {% for i in range(24) %}
+            <td><input type="text" class="bres col{{i+1}}" size="7"></td>
+            {% endfor %}
         </tr>
         </tfoot>
     </table>
