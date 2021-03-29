@@ -8,25 +8,30 @@
         <h2>Сформувати залишки на початок місяця</h2>
 
         <p></p>
-        <input type="number" name="ryear" min="2015" max="2099" step="1" value="2021" />
-        <select name="rmonth">
-            <option value="01">Січень</option>
-            <option value="02">Лютий</option>
-            <option value="03">Березень</option>
-            <option value="04">Квітень</option>
-            <option value="05">Травень</option>
-            <option value="06">Червень</option>
-            <option value="07">Липень</option>
-            <option value="08">Серпень</option>
-            <option value="09">Вересень</option>
-            <option value="10">Жовтень</option>
-            <option value="11">Листопад</option>
-            <option value="12">Грудень</option>
-        </select>
-        <select id="texture">
-            {% for tex in texture_list %}
-            <option value="{{tex}}">{{tex}}</option>
-            {% endfor %}
-        </select>
+        <form id="f1" method="POST">
+            <input type="number" name="mfin" min="2015" max="2099" step="1" value="2021" />
+            <select name="mfin">
+                <option value="01">Січень</option>
+                <option value="02">Лютий</option>
+                <option value="03">Березень</option>
+                <option value="04">Квітень</option>
+                <option value="05">Травень</option>
+                <option value="06">Червень</option>
+                <option value="07">Липень</option>
+                <option value="08">Серпень</option>
+                <option value="09">Вересень</option>
+                <option value="10">Жовтень</option>
+                <option value="11">Листопад</option>
+                <option value="12">Грудень</option>
+            </select>
+            <select id="texture" name="mfin">
+                {% for tex in texture_list %}
+                <option value="{{tex}}">{{tex}}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Сформувати</button>
+        </form>
+
+        <h3>{{message}}</h3>
     </body>
 </html>

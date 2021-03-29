@@ -63,12 +63,12 @@ def make_texture_lists_for_remainders(lst):
             print("***********  ", res_lst[-1])
     return tl, res_lst
 
-@app.route("/")
+
 @app.route("/home")
 def home():
     return render_template('home.html', title='Ламінування')
 
-
+@app.route("/")
 @app.route("/home2", methods=["POST", "GET"])
 @app.route("/home16", methods=["POST","GET"])
 @app.route("/home18", methods=["POST","GET"])
@@ -253,7 +253,10 @@ def robota():
 @app.route("/mf", methods=["POST", "GET"])
 def monfin():
     if request.method == "GET":
-        return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list)    
+        return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list) 
+    if request.method == "POST":
+        message = 'complete'
+        return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list, message=message)   
 
 
 @app.route("/test", methods=["GET", "POST"])
