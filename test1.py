@@ -127,6 +127,8 @@ def home2():
             koef, thick = 0.090585, '18'
         tinfo = request.args.getlist("top_info")
         if tinfo:
+            if len(tinfo)<4:
+                tinfo += [''] * (4 - len(tinfo))
             gen_info = tinfo + [thick]
         else: 
             gen_info = [date.today().isoformat(), '1', '', '', thick]   #додати ім'я майстра {3}
@@ -135,11 +137,13 @@ def home2():
         cur = conn.cursor()
         cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
         zm_id = cur.fetchone()
+        print(tinfo)
         if zm_id:
-            cur.execute(f"SELECT * FROM robota_zm WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'")
+            cur.execute(f"SELECT * FROM robota_zm INNER JOIN textures USING(textures_id) WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'")
             c = cur.fetchall()
             for i in c:
-                t_lists.append((texture_list[i[2]-1],) + i[6:])
+                t_lists.append(i[-2:-1] + i[6:-2])
+     #           t_lists.append((texture_list[i[2]-1],) + i[6:])
             gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
         else:
             pass
@@ -255,7 +259,44 @@ def monfin():
     if request.method == "GET":
         return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list) 
     if request.method == "POST":
-        message = 'complete'
+        m = request.form.getlist('mfin')
+
+        conn = sqlite3.connect("db/lam1.db")
+        cur = conn.cursor()
+        cur.execute(f"SELECT textures_id FROM textures WHERE name='{m[2]}'")
+        tid = cur.fetchone()[0]
+        print("texture id ----",tid)
+        print(m)
+        start_date, end_date = '2021-02-01','2021-02-28'
+        thick, eq ='16', '1'
+        cur.execute(f"""
+        SELECT tt.textures_id, st.s1+pres.s1-nas.s1+zis.s1-zif.s1 sort1, st.s2+pres.s2-nas.s2+zis.s2-zif.s2 sort2, st.s3+pres.s3-nas.s3+zis.s3-zif.s3 sort3, st.s4+pres.s4-nas.s4+zis.s4-zif.s4 sort4
+        FROM (SELECT * FROM textures WHERE textures_id={tid}) tt
+            LEFT JOIN
+            (SELECT textures_id,COALESCE(sum(sort1),0) s1,COALESCE(sum(sort2),0) s2,COALESCE(sum(sort3),0) s3,COALESCE(sum(sort4),0) s4
+                FROM remainders INNER JOIN zmina z USING(zmina_id)
+                WHERE source='nas' AND textures_id='{tid}' AND thickness='{thick}' AND e_quality='{eq}' AND zm_date BETWEEN '{start_date}' AND '{end_date}') nas
+            LEFT JOIN
+            (SELECT COALESCE(sum(sort1),0) s1,COALESCE(sum(sort2),0) s2,COALESCE(sum(sort3),0) s3,COALESCE(sum(sort4),0) s4
+                FROM remainders INNER JOIN zmina z USING(zmina_id)
+                WHERE source='zis' AND textures_id='{tid}' AND thickness='{thick}' AND e_quality='{eq}' AND zm_date BETWEEN '{start_date}' AND '{end_date}') zis
+            LEFT JOIN 
+            (SELECT COALESCE(sum(sort1),0) s1,COALESCE(sum(sort2),0) s2,COALESCE(sum(sort3),0) s3,COALESCE(sum(sort4),0) s4
+                FROM remainders INNER JOIN zmina z USING(zmina_id)
+                WHERE source='zif' AND textures_id='{tid}' AND thickness='{thick}' AND e_quality='{eq}' AND zm_date BETWEEN '{start_date}' AND '{end_date}') zif
+            LEFT JOIN
+            (SELECT COALESCE(sum(sort1),0) s1,COALESCE(sum(sort2),0) s2,COALESCE(sum(sort3),0) s3,COALESCE(sum(sort4),0) s4
+                FROM month_rem 
+                WHERE month='{m[1]}' AND year='{m[0]}' AND textures_id='{tid}' AND thickness='{thick}' AND e_quality='{eq}') st
+            LEFT JOIN
+            (SELECT COALESCE(sum(sort1),0) s1,COALESCE(sum(sort2),0) s2,COALESCE(sum(sort3),0) s3,COALESCE(sum(sort4),0) s4
+                FROM robota_zm INNER JOIN zmina z USING(zmina_id)
+                WHERE textures_id='{tid}' AND thickness='{thick}' AND e_quality='{eq}' AND zm_date BETWEEN '{start_date}' AND '{end_date}') pres
+        """)
+        res = cur.fetchone()
+        print(res)
+
+        message = f'{m[0]}-{m[1]}  complete --- {m[2]} --- {res}'
         return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list, message=message)   
 
 
