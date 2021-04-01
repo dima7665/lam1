@@ -286,6 +286,55 @@ def monfin():
         return render_template('monthfinisher.html', maister_list=maister_list, texture_list=texture_list, message=message)   
 
 
+@app.route("/addtexture", methods=["POST","GET"])
+@app.route("/addremaindersfromfile", method="POST")
+def add_texture():
+    if request.method == 'POST':
+        rule = request.url_rule
+        if rule.rule == "/addremaindersfromfile":
+            new_texture = request.form.getlist("newtex")
+            try:
+                con = sqlite3.connect('lam1/db/lam1.db')
+                cur = con.cursor()
+                txt_filename = 'rem.txt'
+                with open(txt_filename,'r',encoding='utf-8') as f:  
+                    text = f.read().split('\n')
+                    t = []
+                    for i in text[:-1]:
+                        i = i.split('\t')
+                        c = cur.execute(f"SELECT textures_id FROM textures WHERE name='{i[0].strip()}'").fetchone()
+                        if c:
+                            t.append([c[0]] + i[1:])
+                        else:
+                            print(f"no id for  {i[0]} --- ",c)
+                for i in t[0:4]:
+                    try:
+                        cur.execute(f"""INSERT INTO month_rem (month,year,textures_id,thickness,e_quality,sort1,sort2,sort3,sort4)
+                            VALUES('04','2021','{i[0]}','16','1','{i[1]}','{i[2]}','{i[3]}','{i[4]}')""")
+                    except sqlite3.IntegrityError:
+                        continue
+                con.commit()
+            finally:
+                con.close()
+        if rule.rule == "/addtexturesfromfile":
+            new_t = request.form.getlist("newtex")
+            try:
+                con = sqlite3.connect('lam1/db/lam1.db')
+                cur = con.cursor()
+                try:
+                    cur.execute(f"""INSERT INTO textures (name, code)
+                        VALUES('{new_t[1]}','{new_t[0]}')""")
+                except sqlite3.IntegrityError:
+                    pass           # додати UPDATE  або  видати повідомлення що така текстура і код вже є
+                con.commit()
+            finally:
+                con.close()
+        if rule.rule == "/addtexture":
+            pass
+    if request.method == 'GET':
+        return render_template("addtexture.html", texture_list=texture_list)
+
+
 @app.route("/test", methods=["GET", "POST"])
 def test():
     n = request.form.getlist("f1")

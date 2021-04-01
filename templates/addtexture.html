@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Кінець місяця</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+    </head>
+    <body>
+        <h2>Сформувати залишки на початок місяця</h2>
+
+        <p></p>
+        <form id="oneTexture" action="/addnewtexture" method="POST">
+            <input type="text" name="newtex" placeholder="code" />
+            <select id="texture" name="newtex">
+                {% for tex in texture_list %}
+                <option value="{{tex}}">{{tex}}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Додати</button>
+        </form>
+
+        <form id="texturesFromFile" action="/addtexturesfromfile" name="loadTexturesFromFile" method="POST">
+            <input type="text" name="newtex" placeholder="txt_file" />
+        </form>
+
+        <form id="remaindersFromFile" action="/addremaindersfromfile" name="loadRemaindersFromFile" method="POST">
+            <input type="text" name="newtex" placeholder="txt_file" />
+        </form>
+
+        <h3>{{message}}</h3>
+    </body>
+</html>
