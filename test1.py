@@ -355,13 +355,13 @@ def add_texture():
         if rule.rule == "/addnewtexture":
             new_t = request.form.getlist("newtex")
             try:
-                con = sqlite3.connect('lam1/db/lam1.db')
+                con = sqlite3.connect('db/lam1.db')
                 cur = con.cursor()
                 try:
                     cur.execute(f"""INSERT INTO textures (name, code)
                         VALUES('{new_t[1]}','{new_t[0]}')""")
                 except sqlite3.IntegrityError:
-                    pass           # додати UPDATE  або  видати повідомлення що така текстура і код вже є
+                    print(' така текстура і код вже є')
                 con.commit()
             finally:
                 con.close()

@@ -18,4 +18,4 @@ def checklist (lst, names):
                     c = False
             if name == 'txtfile':
                 pass
-    return c, err
+    return [c, err]
