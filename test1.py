@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import json
 from textures import get_textures_list, get_maister_list, get_column_names
 from textures import sql_command_month_rem, sql_command_work_get
+from check import checklist
 from datetime import date
 import sqlite3
 
@@ -289,37 +290,67 @@ def monfin():
 @app.route("/addtexture", methods=["POST","GET"])
 @app.route("/addnewtexture", methods=["POST"])
 @app.route("/addremaindersfromfile", methods=["POST"])
+@app.route("/addremainder", methods=["POST"])
 def add_texture():
     if request.method == 'POST':
         rule = request.url_rule
         if rule.rule == "/addremaindersfromfile":
             data = request.form.getlist("newrem")
+            chk = checklist(data, ['month','year','thick','eq','txtfile'])
             print(data)
-
-            # try:
-            #     con = sqlite3.connect('lam1/db/lam1.db')
-            #     cur = con.cursor()
-            #     txt_filename = 'rem.txt'
-            #     with open(txt_filename,'r',encoding='utf-8') as f:  
-            #         text = f.read().split('\n')
-            #         t = []
-            #         for i in text[:-1]:
-            #             i = i.split('\t')
-            #             c = cur.execute(f"SELECT textures_id FROM textures WHERE name='{i[0].strip()}'").fetchone()
-            #             if c:
-            #                 t.append([c[0]] + i[1:])
-            #             else:
-            #                 print(f"no id for  {i[0]} --- ",c)
-            #     for i in t[0:4]:
-            #         try:
-            #             cur.execute(f"""INSERT INTO month_rem (month,year,textures_id,thickness,e_quality,sort1,sort2,sort3,sort4)
-            #                 VALUES('04','2021','{i[0]}','16','1','{i[1]}','{i[2]}','{i[3]}','{i[4]}')""")
-            #         except sqlite3.IntegrityError:
-            #             continue
-            #     con.commit()
-            # finally:
-            #     con.close()
-            message = 'Complete'
+            if not chk[0]:
+                message = "Wrong input " + chk[1]
+                return render_template("addtexture.html", texture_list=texture_list, message=message)
+            message = ""
+            try:
+                con = sqlite3.connect('db/lam1.db')
+                cur = con.cursor()
+                txt_filename = 'loadtxt/' + data[-1]
+                with open(txt_filename,'r',encoding='utf-8') as f:  
+                    text = f.read().split('\n')
+                    t = []
+                    for i in text[:-1]:
+                        i = i.split('\t')
+                        c = cur.execute(f"SELECT textures_id FROM textures WHERE name='{i[0].strip()}'").fetchone()
+                        if c:
+                            t.append([c[0]] + i[1:])
+                        else:
+                            message += f"текстури '{i[0]}' немає в базі даних"
+                for i in t[0:4]:
+                    try:
+                        cur.execute(f"""INSERT INTO month_rem (month,year,textures_id,thickness,e_quality,sort1,sort2,sort3,sort4)
+                            VALUES('{data[0]}','{data[1]}','{i[0]}','{data[2]}','{data[3]}','{i[1]}','{i[2]}','{i[3]}','{i[4]}')""")
+                    except sqlite3.IntegrityError:
+                        print("неправильні дані в файлі")
+                con.commit()
+            finally:
+                con.close()
+            message += ' ---> Complete'
+            return render_template("addtexture.html", texture_list=texture_list, message=message)
+        if rule.rule == "/addremainder":
+            data = request.form.getlist("newrem")
+            print(data)
+            chk = checklist(data, ['month','year','texturename','thick','eq','s1','s2','s3','s4'])
+            if not chk[0]:
+                message = "Wrong input " + chk[1]
+                return render_template("addtexture.html", texture_list=texture_list, message=message)
+            message = ""
+            try:
+                con = sqlite3.connect('db/lam1.db')
+                cur = con.cursor()
+                c = cur.execute(f"SELECT textures_id FROM textures WHERE name='{data[2].strip()}'").fetchone()
+                if c:
+                    try:
+                        cur.execute(f"""INSERT INTO month_rem (month,year,textures_id,thickness,e_quality,sort1,sort2,sort3,sort4)
+                        VALUES('{data[0]}','{data[1]}','{c[0]}','{data[3]}','{data[4]}','{data[5]}','{data[6]}','{data[7]}','{data[8]}')""")
+                    except sqlite3.IntegrityError:
+                        print("запис з такими текстурою, місяцем, роком, товщиною і якістю вже є")
+                    con.commit()
+                else:
+                    message += f"текстури '{data[2]}' немає в базі даних"
+            finally:
+                con.close()
+            message += ' ---> Complete'
             return render_template("addtexture.html", texture_list=texture_list, message=message)
         if rule.rule == "/addnewtexture":
             new_t = request.form.getlist("newtex")
