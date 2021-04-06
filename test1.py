@@ -354,17 +354,24 @@ def add_texture():
             return render_template("addtexture.html", texture_list=texture_list, message=message)
         if rule.rule == "/addnewtexture":
             new_t = request.form.getlist("newtex")
+            chk = checklist(new_t, ['code','texturename'])
+            if not chk[0]:
+                message = "Wrong input " + chk[1]
+                return render_template("addtexture.html", texture_list=texture_list, message=message)
+            message = ""
             try:
                 con = sqlite3.connect('db/lam1.db')
                 cur = con.cursor()
                 try:
-                    cur.execute(f"""INSERT INTO textures (name, code)
-                        VALUES('{new_t[1]}','{new_t[0]}')""")
+                    cur.execute(f"INSERT INTO textures (name, code) VALUES('{new_t[1]}','{new_t[0]}')")
+                    message += f' Текстура додана --- {new_t[1]}  {new_t[0]}'
                 except sqlite3.IntegrityError:
                     print(' така текстура і код вже є')
+                    message += f'така текстура і код вже є --- {new_t[1]}  {new_t[0]} '
                 con.commit()
             finally:
                 con.close()
+            return render_template("addtexture.html", texture_list=texture_list, message=message)
         if rule.rule == "/addtexturesfromfile":
             pass
     if request.method == 'GET':
