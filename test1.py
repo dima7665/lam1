@@ -144,19 +144,37 @@ def home2():
         print('GETTT')
         conn = sqlite3.connect('db/lam1.db')
         cur = conn.cursor()
-        cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
+        cur.execute(f"""SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id 
+        WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'""")
         zm_id = cur.fetchone()
-        print(tinfo,gen_info, zm_id)
+        print(tinfo)
         if zm_id:
-            cur.execute(f"SELECT * FROM robota_zm INNER JOIN textures USING(textures_id) WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'")
+            cur.execute(f"""SELECT * FROM robota_zm INNER JOIN textures USING(textures_id) 
+            WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'
+            AND NOT (sort1='' AND sort2='' AND sort3='' AND sort4='') """)
             c = cur.fetchall()
+            t = [[],[],[],[]]
             for i in c:
-                t_lists.append(i[-2:-1] + i[6:-2])
-     #           t_lists.append((texture_list[i[2]-1],) + i[6:])
+                if i[3] == 1 and i[4] == 1:
+                    j = 0
+                elif i[3] == 1 and i[4] == 2:
+                    j = 1
+                elif i[3] ==2 and i[4] == 1:
+                    j = 2
+                else:
+                    j = 3
+                t[j].append(i[-2:-1] + i[6:-2])
+            for i in range(4):
+                if i%2:
+                    t[i] = t[i] + [tuple([''])] * (3 - len(t[i]))
+                else:
+                    t[i] = t[i] + [tuple([''])] * (4 - len(t[i]))
+            t_lists = t[0] + t[1] + t[2] + t[3]
             gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
         else:
             pass
         conn.close() 
+        print(t_lists)
         return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
 
     

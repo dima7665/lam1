@@ -304,8 +304,12 @@
 
         function load_values(){
             lists = {{ t_lists|safe }};
+            t = 0;
             for (let lst of lists){
-                t = lst[1];
+                t++;
+                if (lst[0] == ''){
+                    continue;
+                }
                 document.querySelector('input.t' + t + 'h').value = lst[0];
                 fields = document.querySelectorAll('input.t' + t + 'i');
                 for (i=0;i<fields.length;i++){
@@ -436,7 +440,7 @@
     </div><p></p>
     <label class="testClick">Click</label>
     <input type="submit" value="Зберегти">
-    <h2>Назва таблиці</h2>
+    <h2>Перед заповненням таблиці robota_zm - видалити стовпчик tcol </h2>
     <p></p>
     <table id="main_table">  
         <tr id="row_header">
