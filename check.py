@@ -13,9 +13,11 @@ def checklist (lst, names):
                 c = False
                 err += ' - ' + name + ' is incorrect - '
         else:
-            if name == 'year':
+            if name == 'year' or name == 'code':
                 if not lst[names.index(name)].isnumeric():
                     c = False
             if name == 'txtfile':
+                pass
+            if name == 'name':
                 pass
     return [c, err]
