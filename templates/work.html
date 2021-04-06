@@ -43,7 +43,6 @@
 
     function refresh_count_row_results(){
         ell = document.querySelectorAll(".vl.col1, .vl.col2, .vl.col3, .vl.col4");
-        alert("refersh  " + ell.length)
         for(let i of ell){
             count_row_result(i);
         }
@@ -126,8 +125,6 @@
         for (let i of document.querySelectorAll("input.vl[name=tvalues]")){
             i.addEventListener("change", values_changed, false);
         }
-        test();
-
         for (let n=1;n<25;n++){
             count_col_result(n);
         } 

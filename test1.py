@@ -110,7 +110,7 @@ def home2():
             if cur_textures[i-1] == '':
                 continue
             pe = get_pressE(i, thick)
-            cur.execute(f"SELECT textures_id FROM textures WHERE name={cur_textures[i-1]}")
+            cur.execute(f"SELECT textures_id FROM textures WHERE name='{cur_textures[i-1]}'")
             texture_id = cur.fetchone()[0]
             t_lists.append([zm_id[0], texture_id] + pe + request.form.getlist(f"t{i}"))
 
@@ -146,7 +146,7 @@ def home2():
         cur = conn.cursor()
         cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
         zm_id = cur.fetchone()
-        print(tinfo)
+        print(tinfo,gen_info, zm_id)
         if zm_id:
             cur.execute(f"SELECT * FROM robota_zm INNER JOIN textures USING(textures_id) WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'")
             c = cur.fetchall()
@@ -288,6 +288,7 @@ def monfin():
 
 
 @app.route("/addtexture", methods=["POST","GET"])
+@app.route("/addtexturesfromfile", methods=["POST"])
 @app.route("/addnewtexture", methods=["POST"])
 @app.route("/addremaindersfromfile", methods=["POST"])
 @app.route("/addremainder", methods=["POST"])
@@ -366,14 +367,39 @@ def add_texture():
                     cur.execute(f"INSERT INTO textures (name, code) VALUES('{new_t[1]}','{new_t[0]}')")
                     message += f' Текстура додана --- {new_t[1]}  {new_t[0]}'
                 except sqlite3.IntegrityError:
-                    print(' така текстура і код вже є')
-                    message += f'така текстура і код вже є --- {new_t[1]}  {new_t[0]} '
+                    print(' така текстура вже є')
+                    message += f'така текстура вже є --- {new_t[1]} '
                 con.commit()
             finally:
                 con.close()
             return render_template("addtexture.html", texture_list=texture_list, message=message)
         if rule.rule == "/addtexturesfromfile":
-            pass
+            new_t = request.form.getlist("newtex")
+            chk = checklist(new_t, ['txtfile'])
+            if not chk[0]:
+                message = "Wrong input " + chk[1]
+                return render_template("addtexture.html", texture_list=texture_list, message=message)
+            message = ""
+            t = []
+            with open('loadtxt/' + new_t[0], 'r', encoding='UTF-8') as f:
+                text = f.read().split('\n')[:-1]
+                for i in text:
+                    t.append(i.split('\t'))
+            try:
+                con = sqlite3.connect('db/lam1.db')
+                cur = con.cursor()
+                print(t)
+                for i in t:
+                    try:
+                        cur.execute(f"INSERT INTO textures (name, code) VALUES('{i[0]}','{i[1]}')")
+                        message += f' Текстура додана --- {i[0]}  {i[1]}' + '\n'
+                    except sqlite3.IntegrityError:
+                        print(' така текстура вже є')
+                        message += f'така текстура вже є --- {i[0]}' + '\n'
+                con.commit()
+            finally:
+                con.close()
+            return render_template("addtexture.html", texture_list=texture_list, message=message)
     if request.method == 'GET':
         return render_template("addtexture.html", texture_list=texture_list)
 
