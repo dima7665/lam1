@@ -123,7 +123,9 @@
             z = document.querySelector(".zquantity.tot7i").value * 2;
             m = document.querySelector(".zquantity.tot9i").value * 2;
             totValues = [z, m];
-            res_change();
+            document.querySelector(".res_table .res_zap .res_i").value = totValues[0];
+            calc_res_col2(".res_zap");
+            calc_res_end();
         }
 
         function sum1s(pr, e)
@@ -302,7 +304,8 @@
             }
         }
 
-        function load_values(){
+        function load_values()
+        {
             lists = {{ t_lists|safe }};
             t = 0;
             for (let lst of lists){
@@ -330,23 +333,53 @@
             }
         }
 
+        function calc_res_onload()
+        {
+            for(let i of [".res_start",".res_zap",".res_get",".res_end"])
+            {
+                calc_res_col2(i);
+            }
+        }
+
+        function calc_res_col2(i)
+        {
+            tab = document.querySelector(".res_table");
+            v = tab.querySelector(i + " .r1i").value;
+            if (v != 0)
+            {
+                v = valRound4(v * k);
+            } 
+            else
+            {
+                v = "";
+            }
+            tab.querySelector(i + " .r2i").value = v;
+        }
+
+        function res_get_change()
+        {
+            calc_res_col2(".res_get");
+        }
+
+        function calc_res_end()
+        {
+            tab = document.querySelector(".res_table");
+            tab.querySelector(".res_end .r1i").value = chkInt(tab.querySelector(".res_start .r1i").value) + chkInt(tab.querySelector(".res_get .r1i").value) - chkInt(tab.querySelector(".res_zap .r1i").value);
+            calc_res_col2(".res_end");
+        }
+
         function res_change()
         {
             zm = document.getElementById("zm_nomer").value;
             tab = document.querySelector(".res_table");
-
             tab.querySelector(".res_zap .res_i").value = totValues[0];
-            
             ell = document.querySelectorAll(".res_end .res_i");
+            calc_res_end();
             for(j=0;j<2;j++){
             for (el of ell)
             {
                 r = el.className.slice(-3, -1);
-                if (r=="r1")
-                {
-                    el.value = chkInt(tab.querySelector(".res_start ." + r + "i").value) + chkInt(tab.querySelector(".res_get ." + r + "i").value) - chkInt(tab.querySelector(".res_zap ." + r + "i").value);
-                }
-                else
+                if (r != "r1")
                 {
                     if (chkInt(r.slice(1,))-2 == zm)
                     {
@@ -364,6 +397,7 @@
                     }
                 }
             }}
+            
         }
 
         function change_datezm()
@@ -407,11 +441,13 @@
                 refresh_def_on_start(di);
             }
 
+            document.querySelector(".res_get .res_i.r1i").addEventListener("change", res_get_change, false);
             for (i of resTableGet)
             {
                 i.addEventListener("change", res_change, false);
             }
             res_change();
+            calc_res_onload();
 
             document.getElementById("top_date").addEventListener("input", change_datezm, false);
             document.getElementById("top_zmina").addEventListener("input", change_datezm, false);
@@ -431,16 +467,64 @@
     {% endfor %}
 </div>
 <form target="_blank" action="/home2" method="post" autocomplete="off">
-    <div>
-    <input type="text" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
-    <input type="text" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
-    <input type="text" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
-    <input type="text" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
-    <input type="hidden" name="thickness" id="thickness" value="{{gen_info[4]}}">
-    </div><p></p>
-    <label class="testClick">Click</label>
-    <input type="submit" value="Зберегти">
-    <h2>Перед заповненням таблиці robota_zm - видалити стовпчик tcol </h2>
+    <div class="homegrid">
+        <div>
+            <input type="hidden" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
+            <input type="hidden" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
+            <input type="hidden" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
+            <input type="hidden" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
+            <input type="hidden" name="thickness" id="thickness" value="{{gen_info[4]}}">
+            <h2>Перед заповненням таблиці robota_zm - видалити стовпчик tcol </h2>
+            <label class="testClick">Click</label>
+            <input type="submit" value="Зберегти">
+        </div>
+        <div>
+            <table id="results" class="res_table">
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>шт І с</td>
+                    <td>м3</td>
+                    <td>№1</td>
+                    <td>№2</td>
+                    <td>№3</td>
+                    <td>№4</td>
+                </tr>
+                <tr class="res_start">
+                    <td>Залишок</td>
+                    <td><input type="text" class="res_i r1i" size="10" value="100"></td>
+                    <td><input type="text" class="res_m r2i" size="10" readonly></td>
+                    <td><input type="text" class="res_i r3i" size="10" value="20"></td>
+                    <td><input type="text" class="res_i r4i" size="10" value="30"></td>
+                    <td><input type="text" class="res_i r5i" size="10" value="35"></td>
+                    <td><input type="text" class="res_i r6i" size="10" value="15"></td>
+                </tr>
+                <tr class="res_get">
+                    <td>Одержано</td>
+                    <td><input type="text" class="res_i r1i" size="10" value=""></td>
+                    <td><input type="text" class="res_m r2i" size="10" readonly></td>
+                    <td rowspan="2"><input type="text" class="res_i r3i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" class="res_i r4i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" class="res_i r5i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" class="res_i r6i" size="10" style="height: 40px;" value=""></td>
+                </tr>
+                <tr class="res_zap">
+                    <td>Запресовано</td>
+                    <td><input type="text" class="res_i r1i" size="10" readonly></td>
+                    <td><input type="text" class="res_m r2i" id="res_zap_m" size="10" readonly></td>
+                </tr>
+                <tr class="res_end">
+                    <td>Залишок</td>
+                    <td><input type="text" class="res_i r1i" size="10" readonly></td>
+                    <td><input type="text" class="res_m r2i" id="res_end_m" size="10" readonly></td>
+                    <td><input type="text" class="res_i r3i" size="10" readonly></td>
+                    <td><input type="text" class="res_i r4i" size="10" readonly></td>
+                    <td><input type="text" class="res_i r5i" size="10" readonly></td>
+                    <td><input type="text" class="res_i r6i" size="10" readonly></td>
+                </tr>
+            </table>    
+        </div>
+    </div>
+
     <p></p>
     <table id="main_table">  
         <tr id="row_header">
@@ -818,53 +902,6 @@
             <td><div><input type="text" class="def_imp_percp_m tot6i" size="10" readonly></div><div>&nbsp;</div></td>
         </tr>
 
-    </table>
-
-    <p>&nbsp;</p>
-
-    <table id="results" class="res_table">
-
-        <tr>
-            <td>&nbsp;</td>
-            <td>шт І с</td>
-            <td>м3</td>
-            <td>№1</td>
-            <td>№2</td>
-            <td>№3</td>
-            <td>№4</td>
-        </tr>
-        <tr class="res_start">
-            <td>Залишок</td>
-            <td><input type="text" class="res_i r1i" size="10" value="100"></td>
-            <td><input type="text" class="res_m r2i" size="10" readonly></td>
-            <td><input type="text" class="res_i r3i" size="10" value="20"></td>
-            <td><input type="text" class="res_i r4i" size="10" value="30"></td>
-            <td><input type="text" class="res_i r5i" size="10" value="35"></td>
-            <td><input type="text" class="res_i r6i" size="10" value="15"></td>
-        </tr>
-        <tr class="res_get">
-            <td>Одержано</td>
-            <td><input type="text" class="res_i r1i" size="10" value=""></td>
-            <td><input type="text" class="res_m r2i" size="10" readonly></td>
-            <td rowspan="2"><input type="text" class="res_i r3i" size="10" style="height: 40px;" value=""></td>
-            <td rowspan="2"><input type="text" class="res_i r4i" size="10" style="height: 40px;" value=""></td>
-            <td rowspan="2"><input type="text" class="res_i r5i" size="10" style="height: 40px;" value=""></td>
-            <td rowspan="2"><input type="text" class="res_i r6i" size="10" style="height: 40px;" value=""></td>
-        </tr>
-        <tr class="res_zap">
-            <td>Запресовано</td>
-            <td><input type="text" class="res_i r1i" size="10" readonly></td>
-            <td><input type="text" class="res_m r2i" size="10" readonly></td>
-        </tr>
-        <tr class="res_end">
-            <td>Залишок</td>
-            <td><input type="text" class="res_i r1i" size="10" readonly></td>
-            <td><input type="text" class="res_m r2i" size="10" readonly></td>
-            <td><input type="text" class="res_i r3i" size="10" readonly></td>
-            <td><input type="text" class="res_i r4i" size="10" readonly></td>
-            <td><input type="text" class="res_i r5i" size="10" readonly></td>
-            <td><input type="text" class="res_i r6i" size="10" readonly></td>
-        </tr>
     </table>
 </form>
 {% endblock body %}

@@ -45,3 +45,10 @@ td {
     padding-top: 20px;
     padding-bottom: 20px;
 }
+
+.homegrid {
+    width: 2000px;
+    display: grid;
+    grid-template-columns: 1fr 40%;
+    grid-auto-rows: minmax(100px, auto);
+    }
