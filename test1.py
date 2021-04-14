@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
-from textures import get_textures_list, get_maister_list, get_column_names
+from textures import get_textures_list, get_maister_list, get_column_names, prev_day
 from textures import sql_command_month_rem, sql_command_work_get
 from check import checklist
 from datetime import date
@@ -14,7 +14,7 @@ maister_list = get_maister_list()
 gen_info = ['2021-02-10', '2', maister_list[0], '1']
 
 column_names = dict()
-for i in ['robota_zm','remainders', 'month_rem']:                     # додати в список інші таблиці
+for i in ['robota_zm','remainders', 'month_rem', 'zm_sklad']:                     # додати в список інші таблиці
     column_names[i] = get_column_names(i)
 
 def get_pressE(i, thick):
@@ -43,6 +43,13 @@ def update_command(table, names_lst, lst):
             command += f" {names_lst[x+1]} = '{lst[x]}',"
         command = command[:-1]
         command += f" WHERE zmina_id = {lst[0]} AND textures_id = {lst[1]} AND thickness={lst[2]} AND e_quality = {lst[3]} AND source='{lst[4]}'"
+        return command
+    if table == 'zm_sklad':
+        command = "UPDATE zm_sklad SET"
+        for x in range(2,7):
+            command += f" {names_lst[x]} = '{lst[x]}',"
+        command = command[:-1]
+        command += f" WHERE zmina_id='{lst[0]}' AND thickness='{lst[1]}'"
         return command
     if table == 'month_rem':
         command = "UPDATE month_rem SET"
@@ -122,6 +129,13 @@ def home2():
                 command = update_command('robota_zm', rob_zm_names, i)
                 print(tuple(i))
                 cur.execute(command)
+        zm_sklad_names = column_names['zm_sklad']
+        try:
+            val = [zm_id[0], thick] + request.form.getlist('resg')
+            cur.execute(f"INSERT INTO zm_sklad {zm_sklad_names[1:]} VALUES {tuple(val)}")
+        except sqlite3.IntegrityError:
+            command = update_command('zm_sklad', zm_sklad_names[1:], val)
+            cur.execute(command)
         conn.commit()
         conn.close()
         return render_template('home2.html', title='Ламінування', gen_info=gen_info, maister_list=maister_list, texture_list=texture_list)
@@ -142,16 +156,19 @@ def home2():
         else: 
             gen_info = [date.today().isoformat(), '1', '', '', thick]   #додати ім'я майстра {3}
         print('GETTT')
-        conn = sqlite3.connect('db/lam1.db')
-        cur = conn.cursor()
-        cur.execute(f"""SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id 
-        WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'""")
-        zm_id = cur.fetchone()
-        print(tinfo)
-        if zm_id:
+        try:
+            conn = sqlite3.connect('db/lam1.db')
+            cur = conn.cursor()
+            cur.execute(f"""SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id 
+                WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'""")
+            zm_id = cur.fetchone()
+            if not zm_id:
+                cur.execute(f"INSERT INTO zmina (zm_date,zm_zmina,nomer_zm,maister_id) VALUES ('{gen_info[0]}', '{gen_info[1]}', '', '')")
+                cur.execute(f"SELECT zmina_id FROM zmina WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
+                zm_id = cur.fetchone()
             cur.execute(f"""SELECT * FROM robota_zm INNER JOIN textures USING(textures_id) 
-            WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'
-            AND NOT (sort1='' AND sort2='' AND sort3='' AND sort4='') """)
+                WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'
+                AND NOT (sort1='' AND sort2='' AND sort3='' AND sort4='') """)
             c = cur.fetchall()
             t = [[],[],[],[]]
             for i in c:
@@ -170,12 +187,42 @@ def home2():
                 else:
                     t[i] = t[i] + [tuple([''])] * (4 - len(t[i]))
             t_lists = t[0] + t[1] + t[2] + t[3]
-            gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
-        else:
-            pass
-        conn.close() 
+            print(len(gen_info), len(zm_id))
+            gen_info[2], gen_info[3] = ['', ''] if len(zm_id) < 3 else [zm_id[2], zm_id[1]]
+            ymd = gen_info[0].split('-')
+            prevday = prev_day(gen_info[0])
+            cur.execute(f"""SELECT zm1,zm2,zm3,zm4 FROM zm_sklad_month  
+                WHERE month='{ymd[1]}' AND year='{ymd[0]}' AND thickness='{thick}'
+                AND NOT (zm1='' AND zm2='' AND zm3='' AND zm4='') """)
+            c = cur.fetchone()
+            sklad = [0,0,0,0] if not c else list(c)
+            for i in range(4):
+                sel = [1, 2, 3, 4]
+                sel.remove(i+1)
+                cur.execute(f"""SELECT COALESCE(sum(gain),0) - COALESCE(sum(zm{i+1}),0) + COALESCE(SUM(start),0) - COALESCE(SUM(zap),0) FROM 
+                    (
+                    SELECT p+zm{sel[0]}+zm{sel[1]}+zm{sel[2]} as gain, NULL as zm{i+1},NULL as start, NULL as zap FROM
+                        (SELECT COALESCE(SUM(pget ),0) as p, COALESCE(SUM(zm{sel[0]}),0) as zm{sel[0]}, COALESCE(SUM(zm{sel[1]}),0) as zm{sel[1]}, COALESCE(SUM(zm{sel[2]}),0) as zm{sel[2]} 
+                        FROM zm_sklad WHERE thickness='{thick}' AND zmina_id IN 
+                            (SELECT zmina_id FROM zmina WHERE nomer_zm={i+1} AND zm_date BETWEEN '{ymd[0]}-{ymd[1]}-01' AND '{prevday}')
+                        )
+                    UNION 
+                    SELECT NULL,sum(zm{i+1}),NULL,NULL FROM zm_sklad WHERE thickness='{thick}' AND zmina_id IN 
+                        (SELECT zmina_id FROM zmina WHERE nomer_zm!={i+1} AND zm_date BETWEEN '{ymd[0]}-{ymd[1]}-01' AND '{prevday}')
+                    UNION
+                    SELECT NULL, NULL, zm{i+1}, NULL FROM zm_sklad_month WHERE thickness='{thick}' AND month='{ymd[1]}' AND year='{ymd[0]}'
+                    UNION
+                    SELECT NULL,NULL,NULL, s1+s2+s3+s4 as zap FROM
+                        (SELECT COALESCE(SUM(sort1),0) as s1, COALESCE(SUM(sort2),0) as s2, COALESCE(SUM(sort3),0) as s3, COALESCE(SUM(sort4),0) as s4
+                        FROM robota_zm WHERE thickness={thick} AND zmina_id IN 
+                            (SELECT zmina_id FROM zmina WHERE nomer_zm={i+1} AND zm_date BETWEEN '{ymd[0]}-{ymd[1]}-01' AND '{prevday}'))
+                    ) """)
+                c = cur.fetchone()
+                sklad[i] += int(c[0]) if c else 0
+        finally:
+            conn.close() 
         print(t_lists)
-        return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
+        return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, sklad=sklad, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
 
     
 

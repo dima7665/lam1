@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, timedelta
 
 def get_textures_list():
 	textures = []
@@ -42,6 +43,10 @@ def get_column_names(table):
 	res = tuple([i[0] for i in c.description])
 	conn.close()
 	return res
+
+def prev_day(d):
+    d = date.fromisoformat(d) - timedelta(days=1)
+    return d.isoformat()
 
 sql_command_month_rem = """
         SELECT tt.textures_id, st.s1+pres.s1-nas.s1+zis.s1-zif.s1 sort1, st.s2+pres.s2-nas.s2+zis.s2-zif.s2 sort2, st.s3+pres.s3-nas.s3+zis.s3-zif.s3 sort3, st.s4+pres.s4-nas.s4+zis.s4-zif.s4 sort4

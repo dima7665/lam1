@@ -383,13 +383,12 @@
                 {
                     if (chkInt(r.slice(1,))-2 == zm)
                     {
-                        el.value = chkInt(tab.querySelector(".res_end .r1i").value)  
-                                   - chkInt(tab.querySelector(".res_end .r3i").value)
-                                   - chkInt(tab.querySelector(".res_end .r4i").value)
-                                   - chkInt(tab.querySelector(".res_end .r5i").value)
-                                   - chkInt(tab.querySelector(".res_end .r6i").value)
-                                   + chkInt(tab.querySelector(".res_end ." + r + "i").value)
-                                   + chkInt(tab.querySelector(".res_get ." + r + "i").value);
+                        el.value = chkInt(tab.querySelector(".res_start .r1i").value)  
+                                   + chkInt(tab.querySelector(".res_get .r3i").value)
+                                   + chkInt(tab.querySelector(".res_get .r4i").value)
+                                   + chkInt(tab.querySelector(".res_get .r5i").value)
+                                   + chkInt(tab.querySelector(".res_get .r6i").value)
+                                   + chkInt(tab.querySelector(".res_get .r1i").value);
                     }
                     else
                     {
@@ -475,6 +474,7 @@
             <input type="hidden" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
             <input type="hidden" name="thickness" id="thickness" value="{{gen_info[4]}}">
             <h2>Перед заповненням таблиці robota_zm - видалити стовпчик tcol </h2>
+            <h3>Створити глобальні змінні для номерів зміни, майстра і дат, щоб вони не змінювалися до перезавантаження сторінки</h3>
             <label class="testClick">Click</label>
             <input type="submit" value="Зберегти">
         </div>
@@ -491,21 +491,21 @@
                 </tr>
                 <tr class="res_start">
                     <td>Залишок</td>
-                    <td><input type="text" class="res_i r1i" size="10" value="100"></td>
+                    <td><input type="text" class="res_i r1i" size="10" value="{{ sklad[0]+sklad[1]+sklad[2]+sklad[3] }}"></td>
                     <td><input type="text" class="res_m r2i" size="10" readonly></td>
-                    <td><input type="text" class="res_i r3i" size="10" value="20"></td>
-                    <td><input type="text" class="res_i r4i" size="10" value="30"></td>
-                    <td><input type="text" class="res_i r5i" size="10" value="35"></td>
-                    <td><input type="text" class="res_i r6i" size="10" value="15"></td>
+                    <td><input type="text" class="res_i r3i" size="10" value="{{ sklad[0] }}"></td>
+                    <td><input type="text" class="res_i r4i" size="10" value="{{ sklad[1] }}"></td>
+                    <td><input type="text" class="res_i r5i" size="10" value="{{ sklad[2] }}"></td>
+                    <td><input type="text" class="res_i r6i" size="10" value="{{ sklad[3] }}"></td>
                 </tr>
                 <tr class="res_get">
                     <td>Одержано</td>
-                    <td><input type="text" class="res_i r1i" size="10" value=""></td>
+                    <td><input type="text" name="resg" class="res_i r1i" size="10" value=""></td>
                     <td><input type="text" class="res_m r2i" size="10" readonly></td>
-                    <td rowspan="2"><input type="text" class="res_i r3i" size="10" style="height: 40px;" value=""></td>
-                    <td rowspan="2"><input type="text" class="res_i r4i" size="10" style="height: 40px;" value=""></td>
-                    <td rowspan="2"><input type="text" class="res_i r5i" size="10" style="height: 40px;" value=""></td>
-                    <td rowspan="2"><input type="text" class="res_i r6i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r3i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r4i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r5i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r6i" size="10" style="height: 40px;" value=""></td>
                 </tr>
                 <tr class="res_zap">
                     <td>Запресовано</td>
