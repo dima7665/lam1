@@ -383,12 +383,13 @@
                 {
                     if (chkInt(r.slice(1,))-2 == zm)
                     {
-                        el.value = chkInt(tab.querySelector(".res_start .r1i").value)  
+                        el.value = chkInt(tab.querySelector(".res_start ." + r + "i").value)  
                                    + chkInt(tab.querySelector(".res_get .r3i").value)
                                    + chkInt(tab.querySelector(".res_get .r4i").value)
                                    + chkInt(tab.querySelector(".res_get .r5i").value)
                                    + chkInt(tab.querySelector(".res_get .r6i").value)
-                                   + chkInt(tab.querySelector(".res_get .r1i").value);
+                                   + chkInt(tab.querySelector(".res_get .r1i").value)
+                                   - chkInt(tab.querySelector(".res_zap .r1i").value);
                     }
                     else
                     {
@@ -500,12 +501,12 @@
                 </tr>
                 <tr class="res_get">
                     <td>Одержано</td>
-                    <td><input type="text" name="resg" class="res_i r1i" size="10" value=""></td>
+                    <td><input type="text" name="resg" class="res_i r1i" size="10" value="{{ load_get[0] }}"></td>
                     <td><input type="text" class="res_m r2i" size="10" readonly></td>
-                    <td rowspan="2"><input type="text" name="resg" class="res_i r3i" size="10" style="height: 40px;" value=""></td>
-                    <td rowspan="2"><input type="text" name="resg" class="res_i r4i" size="10" style="height: 40px;" value=""></td>
-                    <td rowspan="2"><input type="text" name="resg" class="res_i r5i" size="10" style="height: 40px;" value=""></td>
-                    <td rowspan="2"><input type="text" name="resg" class="res_i r6i" size="10" style="height: 40px;" value=""></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r3i" size="10" style="height: 40px;" value="{{ load_get[1] }}"></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r4i" size="10" style="height: 40px;" value="{{ load_get[2] }}"></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r5i" size="10" style="height: 40px;" value="{{ load_get[3] }}"></td>
+                    <td rowspan="2"><input type="text" name="resg" class="res_i r6i" size="10" style="height: 40px;" value="{{ load_get[4] }}"></td>
                 </tr>
                 <tr class="res_zap">
                     <td>Запресовано</td>

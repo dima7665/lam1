@@ -79,6 +79,8 @@ def make_texture_lists_for_remainders(lst):
             print("***********  ", res_lst[-1])
     return tl, res_lst
 
+def intNone(x):
+    return int(x) if x not in ['',None] else 0
 
 @app.route("/home")
 def home():
@@ -155,7 +157,7 @@ def home2():
             gen_info = tinfo + [thick]
         else: 
             gen_info = [date.today().isoformat(), '1', '', '', thick]   #додати ім'я майстра {3}
-        print('GETTT')
+        print('GETTT', gen_info)
         try:
             conn = sqlite3.connect('db/lam1.db')
             cur = conn.cursor()
@@ -170,6 +172,7 @@ def home2():
                 WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}'
                 AND NOT (sort1='' AND sort2='' AND sort3='' AND sort4='') """)
             c = cur.fetchall()
+        # сумуємо в залежності від класу(Е) і пресу
             t = [[],[],[],[]]
             for i in c:
                 if i[3] == 1 and i[4] == 1:
@@ -187,7 +190,8 @@ def home2():
                 else:
                     t[i] = t[i] + [tuple([''])] * (4 - len(t[i]))
             t_lists = t[0] + t[1] + t[2] + t[3]
-            print(len(gen_info), len(zm_id))
+        # кінець сумування
+            #print(len(gen_info), len(zm_id))
             gen_info[2], gen_info[3] = ['', ''] if len(zm_id) < 3 else [zm_id[2], zm_id[1]]
             ymd = gen_info[0].split('-')
             prevday = prev_day(gen_info[0])
@@ -196,33 +200,83 @@ def home2():
                 AND NOT (zm1='' AND zm2='' AND zm3='' AND zm4='') """)
             c = cur.fetchone()
             sklad = [0,0,0,0] if not c else list(c)
+            print(sklad)
             for i in range(4):
                 sel = [1, 2, 3, 4]
                 sel.remove(i+1)
-                cur.execute(f"""SELECT COALESCE(sum(gain),0) - COALESCE(sum(zm{i+1}),0) + COALESCE(SUM(start),0) - COALESCE(SUM(zap),0) FROM 
-                    (
-                    SELECT p+zm{sel[0]}+zm{sel[1]}+zm{sel[2]} as gain, NULL as zm{i+1},NULL as start, NULL as zap FROM
-                        (SELECT COALESCE(SUM(pget ),0) as p, COALESCE(SUM(zm{sel[0]}),0) as zm{sel[0]}, COALESCE(SUM(zm{sel[1]}),0) as zm{sel[1]}, COALESCE(SUM(zm{sel[2]}),0) as zm{sel[2]} 
+                try:
+                    # sum everything this zmina sklad get
+                    cur.execute(f"""SELECT p+zm{sel[0]}+zm{sel[1]}+zm{sel[2]} FROM
+                        (SELECT COALESCE(SUM(pget),0) as p, COALESCE(SUM(zm{sel[0]}),0) as zm{sel[0]}, COALESCE(SUM(zm{sel[1]}),0) as zm{sel[1]}, COALESCE(SUM(zm{sel[2]}),0) as zm{sel[2]} 
                         FROM zm_sklad WHERE thickness='{thick}' AND zmina_id IN 
                             (SELECT zmina_id FROM zmina WHERE nomer_zm={i+1} AND zm_date BETWEEN '{ymd[0]}-{ymd[1]}-01' AND '{prevday}')
                         )
-                    UNION 
-                    SELECT NULL,sum(zm{i+1}),NULL,NULL FROM zm_sklad WHERE thickness='{thick}' AND zmina_id IN 
+                    """)
+                    c = cur.fetchone()
+                    gain = int(c[0]) if c and c[0] not in ('',None) else 0
+                    # sum everything this zmina sklad give
+                    cur.execute(f"""SELECT sum(zm{i+1}) FROM zm_sklad WHERE thickness='{thick}' AND zmina_id IN 
                         (SELECT zmina_id FROM zmina WHERE nomer_zm!={i+1} AND zm_date BETWEEN '{ymd[0]}-{ymd[1]}-01' AND '{prevday}')
-                    UNION
-                    SELECT NULL, NULL, zm{i+1}, NULL FROM zm_sklad_month WHERE thickness='{thick}' AND month='{ymd[1]}' AND year='{ymd[0]}'
-                    UNION
-                    SELECT NULL,NULL,NULL, s1+s2+s3+s4 as zap FROM
+                    """)
+                    c = cur.fetchone()
+                    give = int(c[0]) if c and c[0] not in ('',None) else 0
+                    # zapr this month on this zmina
+                    cur.execute(f"""SELECT s1+s2+s3+s4 as zap FROM
                         (SELECT COALESCE(SUM(sort1),0) as s1, COALESCE(SUM(sort2),0) as s2, COALESCE(SUM(sort3),0) as s3, COALESCE(SUM(sort4),0) as s4
                         FROM robota_zm WHERE thickness={thick} AND zmina_id IN 
                             (SELECT zmina_id FROM zmina WHERE nomer_zm={i+1} AND zm_date BETWEEN '{ymd[0]}-{ymd[1]}-01' AND '{prevday}'))
-                    ) """)
-                c = cur.fetchone()
-                sklad[i] += int(c[0]) if c else 0
+                    """)
+                    c = cur.fetchone()
+                    zapr = int(c[0]) if c and c[0] not in ('',None) else 0
+                except:
+                    print("щось пішло не так")
+                sklad[i] += gain - give - zapr
+            print('sklad', sklad)
+            # заповнюємо клітинки одержано 
+            cur.execute(f"""SELECT s.pget,s.zm1,s.zm2,s.zm3,s.zm4, z.zmina_id,z.nomer_zm FROM zm_sklad as s INNER JOIN zmina as z USING(zmina_id)
+                WHERE zm_date='{gen_info[0]}' AND zm_zmina='1' AND thickness='{thick}'
+            """)
+            c = cur.fetchone()
+            if c:
+                load_get = tuple([i if i not in ['', None] else 0 for i in c])
+            else:
+                load_get = (0,0,0,0,0,0,0)
+            print(load_get)
+            
+            # для нічної зміни
+            if gen_info[1] == '2':
+                if load_get[5] not in (0, '', None):
+                    cur.execute(f"""SELECT s1+s2+s3+s4 as zap FROM
+                            (SELECT COALESCE(SUM(sort1),0) as s1, COALESCE(SUM(sort2),0) as s2, COALESCE(SUM(sort3),0) as s3, COALESCE(SUM(sort4),0) as s4
+                            FROM robota_zm WHERE thickness={thick} AND zmina_id IN 
+                                (SELECT zmina_id FROM zmina WHERE zm_zmina='1' AND zm_date='{gen_info[0]}'))
+                    """)
+                    c = cur.fetchone()
+                    zapr = c[0] if c and c[0] not in [None, ''] else 0
+                    d_zmina = load_get[-1]                  
+                    sel = [1,2,3,4]
+                    sel.remove(d_zmina)
+                    for i in sel:
+                        sklad[i - 1] -= load_get[i]
+                    sklad[d_zmina - 1] += sum(load_get[x] for x in sel) + load_get[0] - zapr
+                    print(sum(load_get[x] for x in sel), load_get[0], zapr, '------', d_zmina - 1)
+                    cur.execute(f"""SELECT s.pget,s.zm1,s.zm2,s.zm3,s.zm4 FROM zm_sklad as s INNER JOIN zmina USING(zmina_id)
+                    WHERE zm_date='{gen_info[0]}' AND zm_zmina='2' AND thickness={thick}
+                    """)
+                    c = cur.fetchone()
+                    print('c',c)
+                    if c:
+                        load_get = [i if i not in ['', None] else 0 for i in c]
+                    else:
+                        load_get = [0,0,0,0,0,0,0]                    
+                    print('sklad nich ', sklad)
+                    print(load_get)
+                    sklad = [int(i) for i in sklad]
+
         finally:
             conn.close() 
-        print(t_lists)
-        return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, sklad=sklad, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
+        #print(t_lists)
+        return render_template('home2.html', title="LAMIN", koef=koef, thick=thick, gen_info=gen_info, load_get=load_get[:5], sklad=sklad, maister_list=maister_list, texture_list=texture_list, t_lists=json.dumps(t_lists))
 
     
 
