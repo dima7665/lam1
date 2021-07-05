@@ -73,7 +73,7 @@ sql_command_month_rem = """
                 WHERE textures_id='{0}' AND thickness='{1}' AND e_quality='{2}' AND zm_date BETWEEN '{3}' AND '{4}') pres
         """
 
-sql_command_work_get = """SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4),sum(ms1),sum(ms2),sum(ms3),sum(ms4)
+sql_command_rem_get = """SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4),sum(ms1),sum(ms2),sum(ms3),sum(ms4)
             FROM (SELECT textures_id,zmina_id,thickness,e_quality,NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4,NULL ms1,NULL ms2,NULL ms3,NULL ms4
                     FROM remainders
                     WHERE source='nas' AND zmina_id={0} AND thickness={1} AND e_quality={2}
@@ -96,3 +96,23 @@ sql_command_work_get = """SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),su
             INNER JOIN textures t USING(textures_id)
             GROUP BY t.name
             """
+sql_command_remone_get = """SELECT COALESCE(sum(zr1),0), COALESCE(sum(zr2),0), COALESCE(sum(zr3),0), COALESCE(sum(zr4),0),
+                                COALESCE(sum(sort1),0), COALESCE(sum(sort2),0), COALESCE(sum(sort3),0), COALESCE(sum(sort4),0), 
+                                COALESCE(sum(zs1),0), COALESCE(sum(zs2),0), COALESCE(sum(zs3),0), COALESCE(sum(zs4),0), 
+                                COALESCE(sum(zf1),0), COALESCE(sum(zf2),0), COALESCE(sum(zf3),0), COALESCE(sum(zf4),0)
+                FROM (SELECT NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4
+                    FROM remainders
+                    WHERE textures_id='{3}' AND source='nas' AND zmina_id={0} AND thickness={1} AND e_quality={2}
+                    UNION ALL
+                    SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL
+                        FROM remainders
+                        WHERE textures_id='{3}' AND source='zis' AND zmina_id={0} AND thickness={1} AND e_quality={2}
+                    UNION ALL
+                    SELECT NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4
+                        FROM remainders
+                        WHERE textures_id='{3}' AND source='zif' AND zmina_id={0} AND thickness={1} AND e_quality={2}
+                    UNION ALL
+                    SELECT sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+                        FROM robota_zm
+                        WHERE textures_id='{3}' AND zmina_id={0} AND thickness={1} AND e_quality={2})
+                    """

@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
 import json
 from textures import get_textures_list, get_maister_list, get_column_names, prev_day
-from textures import sql_command_month_rem, sql_command_work_get
+from textures import sql_command_month_rem, sql_command_rem_get, sql_command_remone_get
 from check import checklist
-from datetime import date
+from datetime import date, timedelta
 import sqlite3
 
 
@@ -282,7 +282,7 @@ def home2():
 
 
 @app.route("/work", methods=["POST","GET"])
-def robota():
+def remainders():
     global gen_info
     if request.method == 'POST':
         t_list = []
@@ -339,19 +339,52 @@ def robota():
         else: 
             gen_info = [date.today().isoformat(), '1', '', '', thick, eq]
         print(gen_info)
-        mdate = gen_info[0].split('-')[0:2]
+        mdate = gen_info[0].split('-')
         conn = sqlite3.connect('db/lam1.db')
         cur = conn.cursor()
         cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='{gen_info[1]}'")
         zm_id = cur.fetchone()
+        start_date = "{}-{}-{}".format(mdate[0], mdate[1], '01')
+        end_date = (date.fromisoformat(gen_info[0]) - timedelta(days=1)).isoformat().split('-')[2]
+        mon = ('01','02','03','04','05','06','07','08','09','10','11','12')[int(mdate[1])-2]   #previous month
         if zm_id:
            # cur.execute(f"SELECT name,sort1,sort2,sort3,sort4 FROM robota_zm INNER JOIN textures ON robota_zm.textures_id=textures.textures_id WHERE zmina_id='{zm_id[0]}' AND thickness='{thick}' AND e_quality='{eq}'")
-            cur.execute(sql_command_work_get.format(zm_id[0], thick, eq, mdate[1], mdate[0]))
+            cur.execute(sql_command_rem_get.format(zm_id[0], thick, eq, mdate[1], mdate[0]))
             c = cur.fetchall()
             for i in c:
-                print(i)
+                #print(i)
+                # starting remainders
+                cur.execute(f"SELECT textures_id FROM textures WHERE name='{i[0]}'")
+                tid = cur.fetchone()[0]
+                if mdate[2] != '01':
+                    cur.execute(sql_command_month_rem.format(tid, thick, eq, start_date, end_date, mdate[1], mdate[0]))
+                    prevday_rem = cur.fetchone()
+                    if gen_info[1] == '2':
+                        cur.execute(f"SELECT zmina_id, nomer_zm, general_name FROM zmina INNER JOIN maister ON zmina.maister_id=maister.maister_id WHERE zm_date='{gen_info[0]}' AND zm_zmina='1'")
+                        zm_id1 = cur.fetchone()
+                        if zm_id1:
+                            cur.execute(sql_command_remone_get.format(zm_id1[0], thick, eq, tid))
+                        pass
+                else:
+                    prevday_rem = cur.execute(f"""SELECT textures_id,sort1,sort2,sort3,sort4 FROM month_rem WHERE month='{mdate[1]}' AND 
+                        year='{mdate[0]}' AND textures_id='{tid}' AND thickness='{thick}' AND e_quality='{eq}'""").fetchone()
+                i = [0 if x==None else x for x in i]
+                tt = i[:-4]
+
+
+###########
+##########
+ ###############             
+################      додати-відняти до залишків попереднього дня поточні дані    ###
+#########
+########
+##########
+########
+###########
+
+
                 t_lists.append(tuple('' if x==None or x==0.0 else x for x in i))
-            gen_info[2], gen_info[3] = zm_id[2], zm_id[1]
+            gen_info[2], gen_info[3] = zm_id[2], zm_id[1]    
         else:
             pass
         conn.close()
@@ -368,7 +401,7 @@ def monfin():
         month_rem_names = column_names['month_rem']
 
         # month and year for select all 
-        mon = ('01','02','03','04','05','06','07','08','09','10','11','12')[int(m[1])-2]
+        mon = ('01','02','03','04','05','06','07','08','09','10','11','12')[int(m[1])-2]   #previous month
         year = m[0] if int(m[1])>1 else int(m[0])-1
         start_date, end_date = f'{year}-{mon}-01', f'{year}-{mon}-31'          
         conn = sqlite3.connect("db/lam1.db")
