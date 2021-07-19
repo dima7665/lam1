@@ -73,27 +73,24 @@ sql_command_month_rem = """
                 WHERE textures_id='{0}' AND thickness='{1}' AND e_quality='{2}' AND zm_date BETWEEN '{3}' AND '{4}') pres
         """
 
-sql_command_rem_get = """SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4),sum(ms1),sum(ms2),sum(ms3),sum(ms4)
-            FROM (SELECT textures_id,zmina_id,thickness,e_quality,NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4,NULL ms1,NULL ms2,NULL ms3,NULL ms4
+sql_command_rem_get = """SELECT t.name,zmina_id,thickness,e_quality,sum(zr1),sum(zr2),sum(zr3),sum(zr4),sum(sort1),sum(sort2),sum(sort3),sum(sort4), sum(zs1),sum(zs2),sum(zs3),sum(zs4), sum(zf1),sum(zf2),sum(zf3),sum(zf4)
+            FROM (SELECT textures_id,zmina_id,thickness,e_quality,NULL zr1,NULL zr2,NULL zr3,NULL zr4,sort1,sort2,sort3,sort4,NULL zs1,NULL zs2,NULL zs3,NULL zs4,NULL zf1,NULL zf2,NULL zf3,NULL zf4
                     FROM remainders
                     WHERE source='nas' AND zmina_id={0} AND thickness={1} AND e_quality={2}
                 UNION ALL
-                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL 
+                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL
                     FROM remainders
                     WHERE source='zis' AND zmina_id={0} AND thickness={1} AND e_quality={2}
                 UNION ALL
-                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL
+                SELECT textures_id,zmina_id,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1,sort2,sort3,sort4
                     FROM remainders
                     WHERE source='zif' AND zmina_id={0} AND thickness={1} AND e_quality={2}
                 UNION ALL
-                SELECT textures_id,zmina_id,thickness,e_quality,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+                SELECT textures_id,zmina_id,thickness,e_quality,sort1,sort2,sort3,sort4,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
                     FROM robota_zm
-                    WHERE zmina_id={0} AND thickness={1} AND e_quality={2}
-                UNION ALL
-                SELECT textures_id,NULL,thickness,e_quality,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,sort1 ms1,sort2 ms2,sort3 ms3,sort4 ms4
-                    FROM month_rem
-                    WHERE month='{3}' AND year={4} AND thickness={1} AND e_quality={2})
+                    WHERE zmina_id={0} AND thickness={1} AND e_quality={2})
             INNER JOIN textures t USING(textures_id)
+            WHERE textures_id = {3}
             GROUP BY t.name
             """
 sql_command_remone_get = """SELECT COALESCE(sum(zr1),0), COALESCE(sum(zr2),0), COALESCE(sum(zr3),0), COALESCE(sum(zr4),0),

@@ -401,11 +401,9 @@
         }
 
         function change_datezm()
-        {
-            document.getElementById("zm_date").value = document.getElementById("top_date").value;
-            document.getElementById("zm_zmina").value = document.getElementById("top_zmina").value;
-            document.getElementById("zm_maister").value = document.getElementById("top_maister").value;
-            document.getElementById("zm_nomer").value = document.getElementById("top_nomer").value;
+        {   
+            et = event.target.id.slice(3,);
+            document.getElementById("zm"+et).value = document.getElementById("top"+et).value;
         }
 
         function listen()

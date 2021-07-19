@@ -118,6 +118,20 @@
         return true;
     }
 
+    function write_hidden_date()
+        {
+            document.getElementById("top_date").value = document.getElementById("zm_date").value;
+            document.getElementById("top_zmina").value = document.getElementById("zm_zmina").value;
+            document.getElementById("top_maister").value = document.getElementById("zm_maister").value;
+            document.getElementById("top_nomer").value = document.getElementById("zm_nomer").value;
+        }
+
+    function change_datezm()
+        {   
+            et = event.target.id.slice(3,);
+            document.getElementById("zm"+et).value = document.getElementById("top"+et).value;
+        }
+
     function listen(){
         write_hidden_date();
         window.maxrowid = document.getElementById("main_table_body").querySelectorAll("tr").length; // для обчислення id нового рядка
@@ -129,6 +143,11 @@
             count_col_result(n);
         } 
         refresh_count_row_results();
+        document.getElementById("top_date").addEventListener("input", change_datezm, false);
+        document.getElementById("top_zmina").addEventListener("input", change_datezm, false);
+        document.getElementById("top_maister").addEventListener("input", change_datezm, false);
+        document.getElementById("top_nomer").addEventListener("input", change_datezm, false);
+        write_hidden_date();
     }
     document.addEventListener('DOMContentLoaded', listen);
 
