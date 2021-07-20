@@ -156,14 +156,14 @@
 {% endblock scripts %}
 
 {% block body %}
-<form name="main_form" method="POST" target="_blank" action="/work" onsubmit="return check_textures()" autocomplete="off">
+<form name="main_form" method="POST" target="_blank" action="/remain" onsubmit="return check_textures()" autocomplete="off">
     <div>
         <input type="hidden" name="zm_info" id="zm_date" value="{{gen_info[0]}}">
         <input type="hidden" name="zm_info" id="zm_zmina" value="{{gen_info[1]}}">
-        <input type="hidden" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
+        <input type="text" name="zm_info" id="zm_maister" value="{{gen_info[2]}}">
         <input type="hidden" name="zm_nomer" id="zm_nomer" value="{{gen_info[3]}}">
-        <input type="text" name="thickness" id="thickness" value="{{gen_info[4]}}">
-        <input type="text" name="e_quality" id="e_quality" value="{{gen_info[5]}}">
+        <input type="text" name="thickness" id="thickness" value="{{thick}}">
+        <input type="text" name="e_quality" id="e_quality" value="{{eq}}">
     </div>
     <input type="submit" value="SAVE">
 

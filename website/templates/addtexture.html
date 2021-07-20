@@ -5,6 +5,15 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
     </head>
     <body>
+        <form action="/test" method="get">
+            <div class="btn-group">
+                <button type="submit" formaction="/home16" class="nav_button">Робота зміни</button>
+                <button type="submit" formaction="/remain" class="nav_button">Залишки 16</button>
+                <button type="submit" formaction="/addtexture" class="nav_button">Управління</button>
+                <button type="submit" formaction="/mf" class="nav_button">Сформувати залишки на початок місяця</button>
+            </div>
+            </form>  
+
         <h2>Сформувати залишки на початок місяця</h2>
 
         <div class="addtexturegrid">
